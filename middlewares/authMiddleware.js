@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken"
 import config from "../config/index.js";
 import User from "../modals/userModal.js";
- const generateJwt = async (user) => {
+const generateJwt = async (user) => {
     const payload = {
         id: user.id,
         name: user.name,
@@ -15,19 +15,28 @@ import User from "../modals/userModal.js";
 const authMiddleware = async (req, res, next) => {
 
     try {
-        const token = req.headers.authorization
-        const verifytoken = jwt.verify(token, config.jwtsecret)
+        const header = req.headers['authorization'];
 
-        const rootUser = await User.findOne({ _id: verifytoken.id });
-        if (!rootUser) {
-            throw new Error("user not found")
+      
+        if (typeof header !== 'undefined') {
+            const bearer = header.split(' ');
+            const token = bearer[1];
+
+            
+            const verifytoken = jwt.verify(token, config.jwtsecret)
+
+            console.log('verifytoken', verifytoken)
+            const rootUser = await User.findOne({ _id: verifytoken.id });
+            if (!rootUser) {
+                throw new Error("user not found")
+            }
+
+            req.token = token
+            req.rootUser = rootUser
+
+            req.userId = rootUser._id
+            next();
         }
-
-        req.token = token
-        req.rootUser = rootUser
-
-        req.userId = rootUser._id
-        next();
     }
     catch (error) {
         res.status(401).json({ status: 401, message: "Not Authorize" })
@@ -52,4 +61,6 @@ const checktoken = (req, res, next) => {
 }
 
 
-export { authMiddleware, checktoken,generateJwt }
+
+
+export { authMiddleware, checktoken, generateJwt }

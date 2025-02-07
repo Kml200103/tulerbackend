@@ -16,7 +16,7 @@ const loginUser = async (req, res) => {
     
     if (userValid && (await userValid.comparePassword(password))) {
         const token = await generateJwt(user)
-        return res.status(200).json({ token: token, user: user })
+        return res.status(200).json({ token: token,success:true })
     } else {
         return res.status(400).json({message:"Invalid credentials"})
     }

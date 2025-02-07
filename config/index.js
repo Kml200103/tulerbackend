@@ -14,5 +14,9 @@ export default{
     jwtsecret:process.env.JWT_SECRET_KEY,
     cloudinary_name:process.env.CLOUDINARY_NAME,
     cloudinary_api_key:process.env.CLOUDINARY_API_KEY,
-    cloudinary_secret_key:process.env.CLOUDINARY_SECRET_KEY
+    cloudinary_secret_key:process.env.CLOUDINARY_SECRET_KEY,
+    frontendUrl:process.env.FRONTEND_URL,
+    userEmail:process.env.EMAIL_USER,
+    smtpUser:process.env.SMTP_USER,
+    smtpPass:process.env.SMTP_PASS
 }

@@ -1,5 +1,8 @@
+import config from "../config/index.js";
 import User from "../modals/userModal.js";
-
+import emailService from "../services/email/sendEmail.js";
+import jwt from "jsonwebtoken"
+import * as bcrypt from "bcryptjs"
 const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -28,26 +31,98 @@ const registerUser = async (req, res) => {
     }
 }
 
-// const loginUser = async (req, res) => {
-//     const { email, password } = req.body
-//     if (!email || !password) {
-//         return res.status(400).json({ error: "All fields are required." });
-//     }
-//     const userValid = await User.findOne({ email: email })
-//     console.log('userValid', userValid)
-//     if (!userValid) {
-//         return res.status(400).json({ error: "User not exists." });
-//     }
-//     const user = { id: userValid._id, name: userValid.name, email: userValid.email, role: userValid.role, isAdmin: userValid.isAdmin }
-//     // const user = await User.findOne({ email });
-//     if (userValid && (await userValid.comparePassword(password))) {
-//         return res.status(201).json({ message: "User Login Successfully", userValid })
-//     } else {
-//         console.log("Invalid credentials");
-//     }
-
-// }
-const getAllUser = (req, res) => {
-
+const validateUser = async(req, res) => {
+    const { userId } = req
+    const user = await User.findOne({ _id: userId })
+    if (!user) {
+        return res.status(400).json({ message: "User Not Found" })
+    }
+    else {
+        const newUser = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            isAdmin: user.isAdmin
+        }
+        return res.status(200).json({ message: "User Found Successfully", user: newUser })
+    }
 }
-export { registerUser, getAllUser }
+
+
+
+const getUserById = async (req, res) => {
+
+    const { userId } = req
+    const user = await User.findOne({ _id: userId })
+    if (!user) {
+        return res.status(400).json({ message: "User Not Found" })
+    }
+    else {
+        const newUser = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            isAdmin: user.isAdmin
+        }
+        return res.status(200).json({ message: "User Found Successfully", user: newUser })
+    }
+}
+
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ status: false, message: 'User not found' });
+        }
+
+        // Generate token & expiry (valid for 1 hour)
+        const resetToken = jwt.sign({ email }, config.jwtsecret, { expiresIn: '1h' });
+
+        user.resetPasswordToken = resetToken;
+        user.tokenExpiry = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        // Send email
+        await emailService.sendResetPasswordEmail(email, resetToken);
+
+        res.json({ status: true, message: 'Password reset link sent to email' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: false, message: 'Internal server error' });
+    }
+}
+
+const resetPassword = async (req, res) => {
+    console.log('req.body', req.body)
+    // console.log('req.params', req.params)
+    const { password, token, email } = req.body;
+    // const { token, email } = req.params
+    if (!password) {
+        return res.status(400).json({ status: false, message: 'Password is required' });
+    }
+
+    try {
+        const user = await User.findOne({ email, resetPasswordToken: token });
+
+
+        if (!user || !user.tokenExpiry || user.tokenExpiry < Date.now()) {
+            return res.status(400).json({ status: false, message: 'Invalid or expired token' });
+        }
+
+
+        user.password = password;
+        user.resetPasswordToken = null;
+        user.tokenExpiry = null;
+        await user.save();
+
+        res.json({ status: true, message: 'Password reset successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: false, message: 'Failed to reset password' });
+    }
+}
+export { registerUser, getUserById, resetPassword, forgotPassword,validateUser }
