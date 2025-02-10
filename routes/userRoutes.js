@@ -1,5 +1,5 @@
 import express from "express"
-import { forgotPassword, registerUser, resetPassword, validateUser } from "../controllers/UserController.js"
+import { forgotPassword, registerOrUpdateUser, resetPassword, validateUser } from "../controllers/UserController.js"
 import multer from "multer";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -10,7 +10,7 @@ const userRouter = express.Router()
 
 // userRouter.get('/', getAllUser)
 
-userRouter.post('/register', registerUser)
+userRouter.post('/registerUpdate', registerOrUpdateUser)
 
 userRouter.get('/verify', authMiddleware, validateUser)
 

@@ -1,5 +1,4 @@
 import Address from "../modals/addressModal.js"
-import { registerUser } from "./UserController.js";
 
 const createOrUpdateAddress = async (req, res) => {
     try {

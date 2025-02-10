@@ -2,34 +2,46 @@ import config from "../config/index.js";
 import User from "../modals/userModal.js";
 import emailService from "../services/email/sendEmail.js";
 import jwt from "jsonwebtoken"
-import * as bcrypt from "bcryptjs"
-const registerUser = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-
-        //  Check if all fields are provided
-        if (!name || !email || !password) {
-            return res.status(400).json({ error: "All fields are required." });
+const registerOrUpdateUser = async (req, res) => {
+   
+        try {
+            const { userId, name, email, password } = req.body;
+    
+            // Validate required fields
+            if (!name || !email) {
+                return res.status(400).json({ error: "Name and email are required." });
+            }
+    
+            // Check if user exists
+            let existingUser = await User.findOne({ email });
+    
+            if (existingUser) {
+                // If user exists and a userId is provided, update the user
+                if (userId && existingUser._id.toString() === userId) {
+                    existingUser.name = name;
+                    existingUser.email = email;
+    
+                    if (password) {
+                        existingUser.password = password;
+                    }
+    
+                    await existingUser.save();
+                    return res.status(200).json({ message: "User updated successfully!", user: existingUser });
+                }
+                return res.status(400).json({ error: "User with this email already exists." });
+            }
+    
+            // If user does not exist, create a new user
+            const newUser = new User({ name, email, password });
+            await newUser.save();
+    
+            res.status(201).json({ message: "User registered successfully!", user: newUser });
+        } catch (error) {
+            console.error("Registration/Update Error:", error);
+            res.status(500).json({ error: "Internal Server Error" });
         }
+    } 
 
-        //  Check if the user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ error: "User already exists." });
-        }
-
-        //  Create new user
-        const newUser = new User({ name, email, password });
-
-        //  Save user to database (password is hashed in pre-save hook)
-        await newUser.save();
-
-        res.status(201).json({ message: "User registered successfully!" });
-    } catch (error) {
-        console.error("Registration Error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
 
 const validateUser = async(req, res) => {
     const { userId } = req
@@ -125,4 +137,4 @@ const resetPassword = async (req, res) => {
         res.status(500).json({ status: false, message: 'Failed to reset password' });
     }
 }
-export { registerUser, getUserById, resetPassword, forgotPassword,validateUser }
+export { registerOrUpdateUser, getUserById, resetPassword, forgotPassword,validateUser }
