@@ -1,7 +1,6 @@
 import express from "express"
 import { forgotPassword, registerUser, resetPassword, validateUser } from "../controllers/UserController.js"
 import multer from "multer";
-import { createProduct } from "../controllers/ProductController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const storage = multer.memoryStorage(); // Store files in memory for Cloudinary
@@ -15,7 +14,7 @@ userRouter.post('/register', registerUser)
 
 userRouter.get('/verify', authMiddleware, validateUser)
 
-userRouter.post('/upload', upload, createProduct)
+// userRouter.post('/upload', upload, createProduct)
 
 userRouter.post('/forgot-password',forgotPassword)
 
