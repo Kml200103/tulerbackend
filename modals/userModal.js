@@ -29,6 +29,19 @@ const userSchema = new mongoose.Schema(
                 message: "Password must be at least 8 characters long and contain at least 1 uppercase letter.",
             },
         },
+        phone: {
+            type: String,
+            
+            unique: true,
+            trim: true,
+            validate: {
+                validator: function (value) {
+                    // Indian phone number validation (10 digits, no leading 0 or +91)
+                    return /^[6-9]\d{9}$/.test(value);
+                },
+                message: "Invalid Indian phone number format. Must be 10 digits and start with 6-9.",
+            },
+        },
         role: {
             type: String,
             enum: Object.values(ROLES),
@@ -40,12 +53,10 @@ const userSchema = new mongoose.Schema(
         },
         resetPasswordToken: {
             type: String,
-
         },
         tokenExpiry: {
-            type: Date
-        }
-
+            type: Date,
+        },
     },
     { timestamps: true }
 );

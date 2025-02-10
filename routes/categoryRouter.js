@@ -1,28 +1,16 @@
-const express = require("express");
-const Category = require("../models/Category");
+import { deleteCategory, getAllCategories, getCategoriesById } from "../controllers/CategoryController.js";
 
-const router = express.Router();
+import express from "express"
 
-// Add a new category
-router.post("/", async (req, res) => {
-  try {
-    const { name } = req.body;
-    const newCategory = new Category({ name });
-    await newCategory.save();
-    res.status(201).json({ message: "Category added", category: newCategory });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+const categoryRouter = new express.Router();
 
-// Get all categories
-router.get("/", async (req, res) => {
-  try {
-    const categories = await Category.find();
-    res.json(categories);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
 
-module.exports = router;
+categoryRouter.post("/category/createUpdate",)
+categoryRouter.get("/category/all", getAllCategories)
+
+
+categoryRouter.get("/category/:id", getCategoriesById)
+
+categoryRouter.delete("/category/:id", deleteCategory)
+
+export default categoryRouter

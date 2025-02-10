@@ -26,16 +26,16 @@ const registerOrUpdateUser = async (req, res) => {
                     }
     
                     await existingUser.save();
-                    return res.status(200).json({ message: "User updated successfully!", user: existingUser });
+                    return res.status(200).json({ message: "User updated successfully!",success:true });
                 }
-                return res.status(400).json({ error: "User with this email already exists." });
+                return res.status(400).json({ error: "User with this email already exists." ,success:false });
             }
     
             // If user does not exist, create a new user
             const newUser = new User({ name, email, password });
             await newUser.save();
     
-            res.status(201).json({ message: "User registered successfully!", user: newUser });
+            res.status(201).json({ message: "User registered successfully!",success:true });
         } catch (error) {
             console.error("Registration/Update Error:", error);
             res.status(500).json({ error: "Internal Server Error" });

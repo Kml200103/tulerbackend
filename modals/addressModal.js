@@ -13,6 +13,7 @@ const addressSchema = new mongoose.Schema({
         type: String, enum: Object.values(addressType),
         default: addressType.HOME,
     },
+    streetAddress: { type: String, required: true },
 
     pincode: {
         type: Number,
