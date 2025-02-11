@@ -5,8 +5,10 @@ const createOrUpdateProduct = async (req, res) => {
     try {
         const { productId, name, categoryId, description, variants } = req.body;
         const { files } = req;
+        console.log('r', req)
         const imageUrls = [];
 
+       
         if (files) {
             const urls = await uploadToCloudinary(files);
             imageUrls.push(...urls);

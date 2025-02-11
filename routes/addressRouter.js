@@ -3,7 +3,7 @@ import { createOrUpdateAddress, deleteAddress, getAllAddressForUser } from "../c
 
 const addressRouter=express.Router()
 
-addressRouter.post('/address/add/:userId',createOrUpdateAddress)
+addressRouter.post('/address/add/:userId/:id?',createOrUpdateAddress)
 addressRouter.get('/address/:userId',getAllAddressForUser)
 addressRouter.delete('/address/:addressId',deleteAddress)
 export default addressRouter

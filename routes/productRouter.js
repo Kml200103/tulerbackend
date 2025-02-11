@@ -2,13 +2,18 @@ import express from "express";
 import multer from "multer";
 import { createOrUpdateProduct, deleteProduct, getAllProducts, getProductById } from "../controllers/ProductController.js";
 
-const storage = multer.memoryStorage(); // Store files in memory for Cloudinary
-const upload = multer({ storage: storage }).array("images");
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
+}).array("images", 5); // Allow up to 5 images
 
-const productRouter = express.Router();
+const productRouter =new express.Router();
 
-// Unified route for creating and updating products
-productRouter.post('/product', upload,createOrUpdateProduct);
+// Unified route for creating/updating products
+productRouter.post('/product', upload, createOrUpdateProduct);
+
+
 
 productRouter.get('/products', getAllProducts);
 

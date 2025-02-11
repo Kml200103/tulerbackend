@@ -2,18 +2,19 @@ import Address from "../modals/addressModal.js"
 
 const createOrUpdateAddress = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const { _id, name, city, state, country, pincode, addressType } = req.body;
+        const { userId, id } = req.params;
+        const { name, city, state, country, pincode, addressType, streetAddress } = req.body;
 
-        if (!name || !city || !state || !country || !pincode || !addressType) {
+        if (!name || !city || !state || !country || !pincode || !addressType || !streetAddress) {
             return res.status(400).json({ message: "All Fields are required" });
         }
 
-        if (_id) {
 
-            const updatedAddress = await Address.findByIdAndUpdate(
-                _id,
-                { userId, name, city, state, country, pincode, addressType },
+        if (id) {
+
+            const updatedAddress = await Address.findByIdAndUpdate({
+                _id: id},
+                { userId, name, city, state, country, pincode, addressType, streetAddress },
                 { new: true, runValidators: true }
             );
 
@@ -24,7 +25,7 @@ const createOrUpdateAddress = async (req, res) => {
             return res.status(200).json({ success: true, message: "Address updated successfully", updatedAddress });
         } else {
 
-            const newAddress = new Address({ userId, name, city, state, country, pincode, addressType });
+            const newAddress = new Address({ userId, name, city, state, country, pincode, addressType, streetAddress });
             await newAddress.save();
             return res.status(201).json({ success: true, message: "Address added successfully", newAddress });
         }
@@ -60,10 +61,10 @@ const deleteAddress = async (req, res) => {
 
         const address = await Address.findByIdAndDelete({ _id: addressId })
         if (!address) {
-            return res.status(400).json({ message: "Address is not present with Id" })
+            return res.status(400).json({ message: "Address is not present with Id",success:false })
         }
         else {
-            return res.status(200).json({ message: "Address deleted Successfully" })
+            return res.status(200).json({ message: "Address deleted Successfully" ,success:true})
         }
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });

@@ -3,47 +3,48 @@ import User from "../modals/userModal.js";
 import emailService from "../services/email/sendEmail.js";
 import jwt from "jsonwebtoken"
 const registerOrUpdateUser = async (req, res) => {
-   
-        try {
-            const { userId, name, email, password } = req.body;
-    
-            // Validate required fields
-            if (!name || !email) {
-                return res.status(400).json({ error: "Name and email are required." });
-            }
-    
-            // Check if user exists
-            let existingUser = await User.findOne({ email });
-    
-            if (existingUser) {
-                // If user exists and a userId is provided, update the user
-                if (userId && existingUser._id.toString() === userId) {
-                    existingUser.name = name;
-                    existingUser.email = email;
-    
-                    if (password) {
-                        existingUser.password = password;
-                    }
-    
-                    await existingUser.save();
-                    return res.status(200).json({ message: "User updated successfully!",success:true });
-                }
-                return res.status(400).json({ error: "User with this email already exists." ,success:false });
-            }
-    
-            // If user does not exist, create a new user
-            const newUser = new User({ name, email, password });
-            await newUser.save();
-    
-            res.status(201).json({ message: "User registered successfully!",success:true });
-        } catch (error) {
-            console.error("Registration/Update Error:", error);
-            res.status(500).json({ error: "Internal Server Error" });
+
+    try {
+        const { id, name, email, password, phone } = req.body;
+
+        // Validate required fields
+        if (!name || !email) {
+            return res.status(400).json({ error: "Name and email are required." });
         }
-    } 
+
+        // Check if user exists
+        let existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            // If user exists and a userId is provided, update the user
+            if (id && existingUser._id.toString() === id) {
+
+                existingUser.name = name;
+                existingUser.email = email;
+                existingUser.phone = phone
+                if (password) {
+                    existingUser.password = password;
+                }
+
+                await existingUser.save();
+                return res.status(200).json({ message: "User updated successfully!", success: true });
+            }
+            return res.status(400).json({ error: "User with this email already exists.", success: false });
+        }
+
+        // If user does not exist, create a new user
+        const newUser = new User({ name, email, password });
+        await newUser.save();
+
+        res.status(201).json({ message: "User registered successfully!", success: true });
+    } catch (error) {
+        console.error("Registration/Update Error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
 
 
-const validateUser = async(req, res) => {
+const validateUser = async (req, res) => {
     const { userId } = req
     const user = await User.findOne({ _id: userId })
     if (!user) {
@@ -55,7 +56,8 @@ const validateUser = async(req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            isAdmin: user.isAdmin
+            isAdmin: user.isAdmin,
+            phone:user.phone||null
         }
         return res.status(200).json({ message: "User Found Successfully", user: newUser })
     }
@@ -137,4 +139,4 @@ const resetPassword = async (req, res) => {
         res.status(500).json({ status: false, message: 'Failed to reset password' });
     }
 }
-export { registerOrUpdateUser, getUserById, resetPassword, forgotPassword,validateUser }
+export { registerOrUpdateUser, getUserById, resetPassword, forgotPassword, validateUser }
