@@ -33,7 +33,7 @@ const registerOrUpdateUser = async (req, res) => {
         }
 
         // If user does not exist, create a new user
-        const newUser = new User({ name, email, password });
+        const newUser = new User({ name, email, password,phone });
         await newUser.save();
 
         res.status(201).json({ message: "User registered successfully!", success: true });
