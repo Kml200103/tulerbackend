@@ -1,10 +1,12 @@
-import Cart from "../models/cartModel.js";
-import Product from "../models/productModel.js";
+
+import Cart from "../modals/cartModal.js";
+import Product from "../modals/productModal.js";
 
 
 const addToCart = async (req, res) => {
     try {
         const { userId, productId, weight, quantity } = req.body;
+        console.log('req.body', req.body)
 
         if (!userId || !productId || !weight || quantity <= 0) {
             return res.status(400).json({ message: "Invalid data provided" });

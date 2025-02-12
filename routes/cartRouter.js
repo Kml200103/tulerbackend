@@ -10,18 +10,18 @@ import {
 const cartRouter = new express.Router();
 
 // Add product to cart
-cartRouter.post("/add", addToCart);
+cartRouter.post("/cart/add", addToCart);
 
 // Get user's cart
-cartRouter.get("/:userId", getCart);
+cartRouter.get("/cart/:userId", getCart);
 
 // Update cart item quantity
-cartRouter.put("/update", updateCartItem);
+cartRouter.put("/cart/update", updateCartItem);
 
 // Remove item from cart
-cartRouter.delete("/remove", removeCartItem);
+cartRouter.delete("/cart/remove", removeCartItem);
 
 // Clear cart
-cartRouter.delete("/clear/:userId", clearCart);
+cartRouter.delete("/cart/clear/:userId", clearCart);
 
 export default cartRouter;

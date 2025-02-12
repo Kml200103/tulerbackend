@@ -5,8 +5,10 @@ const createOrUpdateProduct = async (req, res) => {
     try {
         const { productId, name, categoryId, description, variants } = req.body;
         const { files } = req;
+        console.log('r', req)
         const imageUrls = [];
 
+       
         if (files) {
             const urls = await uploadToCloudinary(files);
             imageUrls.push(...urls);
@@ -56,8 +58,8 @@ const createOrUpdateProduct = async (req, res) => {
 };
 const getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find().populate("categoryId");
-        return res.status(200).json({ products });
+        const products = await Product.find()
+        return res.status(200).json({ products,success:true });
     } catch (error) {
         console.error("Error fetching products:", error);
         return res.status(500).json({ message: "Internal Server Error" });
