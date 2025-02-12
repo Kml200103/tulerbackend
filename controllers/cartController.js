@@ -65,20 +65,29 @@ const updateCartItem = async (req, res) => {
     try {
         const { userId, productId, weight, quantity } = req.body;
 
+        console.log('req.body:', req.body);
+        
         const cart = await Cart.findOne({ userId });
         if (!cart) {
             return res.status(404).json({ message: "Cart not found" });
         }
 
-        const item = cart.items.find(item => item.productId.toString() === productId && item.weight === weight);
+        const item = cart.items.find(item => 
+            item.productId.toString() === productId && item.weight === weight
+        );
+
         if (!item) {
             return res.status(404).json({ message: "Product not found in cart" });
+        }
+
+        if (quantity < 1) {
+            return res.status(400).json({ message: "Quantity cannot be less than 1" });
         }
 
         item.quantity = quantity;
 
         await cart.save();
-        return res.status(200).json({ message: "Cart updated", cart });
+        return res.status(200).json({ message: "Cart updated successfully", cart });
     } catch (error) {
         console.error("Error updating cart:", error);
         return res.status(500).json({ message: "Internal Server Error" });
