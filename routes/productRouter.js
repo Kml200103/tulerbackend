@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { createOrUpdateProduct, deleteProduct, getAllProducts, getProductById } from "../controllers/ProductController.js";
+import { createOrUpdateProduct, deleteProduct, getAllProducts, getProductByCategory, getProductById } from "../controllers/ProductController.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -22,5 +22,8 @@ productRouter.get('/product/:productId', getProductById);
 
 // Delete a product
 productRouter.delete('/product/:productId', deleteProduct);
+
+
+productRouter.get('/product', getProductByCategory);
 
 export default productRouter;

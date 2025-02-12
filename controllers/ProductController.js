@@ -5,7 +5,6 @@ const createOrUpdateProduct = async (req, res) => {
     try {
         const { productId, name, categoryId, description, variants } = req.body;
         const { files } = req;
-        console.log('r', req)
         const imageUrls = [];
 
        
@@ -103,5 +102,39 @@ const deleteProduct = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
+const getProductByCategory = async (req, res) => {
+    try {
+        const { categoryId, page = 1, limit = 10 } = req.query;
+        let query = {};
 
-export { createOrUpdateProduct, getAllProducts, getProductById, deleteProduct };
+        // Add category filter if provided
+        if (categoryId) {
+            query.categoryId = categoryId;
+        }
+
+        // Convert page and limit to numbers
+        const pageNumber = parseInt(page, 10);
+        const limitNumber = parseInt(limit, 10);
+
+        // Fetch filtered products with pagination
+        const products = await Product.find(query)
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber);
+
+        // Get total count for pagination metadata
+        const totalProducts = await Product.countDocuments(query);
+
+        return res.status(200).json({
+            success: true,
+            products,
+            currentPage: pageNumber,
+            totalPages: Math.ceil(totalProducts / limitNumber),
+            totalProducts
+        });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export { createOrUpdateProduct, getAllProducts, getProductById, deleteProduct ,getProductByCategory};
