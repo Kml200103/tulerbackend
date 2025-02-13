@@ -22,7 +22,7 @@ const loginUser = async (req, res) => {
         }
         return res.status(200).json({ token: token, success: true, redirectUrl: redirectUrl })
     } else {
-        return res.status(400).json({ message: "Invalid credentials", success: false })
+        return res.status(200).json({ message: "Invalid credentials", success: false })
     }
 }
 
