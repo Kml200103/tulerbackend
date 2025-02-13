@@ -11,6 +11,7 @@ const placeOrder = async (req, res) => {
     try {
         const { userId, items, addressId,totalPrice } = req.body;
 
+        console.log('items', items)
         // Validate user
         const user = await User.findById(userId);
         if (!user) {
@@ -34,11 +35,15 @@ const placeOrder = async (req, res) => {
        
 
         for (const item of items) {
+            console.log('item', item)
             const product = await Product.findById(item.productId);
             product.quantity -= item.quantity;
             await product.save();
 
+            console.log('product', product)
+            
            
+
 
             orderItems.push({
                 productId: product._id,

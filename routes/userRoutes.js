@@ -1,5 +1,5 @@
 import express from "express"
-import { forgotPassword, registerOrUpdateUser, resetPassword, validateUser } from "../controllers/UserController.js"
+import { forgotPassword, registerOrUpdateUser, removeUser, resetPassword, validateUser } from "../controllers/UserController.js"
 import multer from "multer";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -20,5 +20,5 @@ userRouter.post('/forgot-password',forgotPassword)
 
 userRouter.post('/reset-password', resetPassword)
 
-
+userRouter.delete('/remove/:userId',removeUser)
 export default userRouter

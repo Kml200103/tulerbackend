@@ -1,4 +1,5 @@
 import config from "../config/index.js";
+import Cart from "../modals/cartModal.js";
 import User from "../modals/userModal.js";
 import emailService from "../services/email/sendEmail.js";
 import jwt from "jsonwebtoken"
@@ -7,6 +8,7 @@ const registerOrUpdateUser = async (req, res) => {
     try {
         const { id, name, email, password, phone } = req.body;
 
+        console.log('req.body', req.body)
         // Validate required fields
         if (!name || !email) {
             return res.status(400).json({ error: "Name and email are required." });
@@ -33,7 +35,7 @@ const registerOrUpdateUser = async (req, res) => {
         }
 
         // If user does not exist, create a new user
-        const newUser = new User({ name, email, password,phone });
+        const newUser = new User({ name, email, password, phone });
         await newUser.save();
 
         res.status(201).json({ message: "User registered successfully!", success: true });
@@ -57,7 +59,7 @@ const validateUser = async (req, res) => {
             email: user.email,
             role: user.role,
             isAdmin: user.isAdmin,
-            phone:user.phone||null
+            phone: user.phone || null
         }
         return res.status(200).json({ message: "User Found Successfully", user: newUser })
     }
@@ -139,4 +141,17 @@ const resetPassword = async (req, res) => {
         res.status(500).json({ status: false, message: 'Failed to reset password' });
     }
 }
-export { registerOrUpdateUser, getUserById, resetPassword, forgotPassword, validateUser }
+
+const removeUser = async (req, res) => {
+    const { userId } = req.params
+    const user=await User.findById({_id:userId})
+    if(!user){
+        return res.status(200).json({success:false,message:"User not Found"})
+
+    }
+   await Cart.findByIdAndDelete({userId})
+
+   await User.findByIdAndDelete({_id:userId})
+   return res.status(200).json({ message: "User Deleted" });
+}
+export { registerOrUpdateUser, getUserById, resetPassword, forgotPassword, validateUser,removeUser }
