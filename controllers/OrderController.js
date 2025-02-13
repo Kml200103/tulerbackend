@@ -1,8 +1,4 @@
-// const Order = require('../models/Order');
-// const Product = require('../models/Product');
-// const User = require('../models/User');
-// const NotificationService = require('../services/notificationService');
-// const EmailService = require('../services/emailService');
+
 
 import Order from "../modals/orderModal.js";
 import Product from "../modals/productModal.js";
@@ -34,7 +30,7 @@ const placeOrder = async (req, res) => {
 
         // Update stock & create order
         const orderItems = [];
-        let grandTotal = 0;
+       
 
         for (const item of items) {
             const product = await Product.findById(item.productId);
