@@ -3,6 +3,7 @@
 import Order from "../modals/orderModal.js";
 import Product from "../modals/productModal.js";
 import User from "../modals/userModal.js";
+import emailService from "../services/email/sendEmail.js";
 
 
 
@@ -37,15 +38,14 @@ const placeOrder = async (req, res) => {
             product.quantity -= item.quantity;
             await product.save();
 
-            // const totalPrice = product.price * item.quantity;
-            // grandTotal += totalPrice;
+           
 
             orderItems.push({
                 productId: product._id,
                 name: product.name,
                 price: product.price,
                 quantity: item.quantity,
-                totalPrice
+                
             });
         }
 
@@ -56,17 +56,17 @@ const placeOrder = async (req, res) => {
             items: orderItems,
             status: 'PENDING',
             paymentStatus: 'UNPAID',
+            totalPrice
         });
 
         await order.save();
 
         // Send notifications
         const itemNames = orderItems.map(item => item.name).join(', ');
-        // await NotificationService.sendNotification('BUYER', `Order Placed: ${itemNames}`);
-        // await NotificationService.sendNotification('SELLER', `New Order Received: ${itemNames}`);
+     
 
         // // Send email
-        // await EmailService.sendOrderConfirmationEmail(user.email, order._id, orderItems, grandTotal);
+        await emailService.sendOrderConfirmationEmail(user.email, order._id, orderItems, totalPrice);
 
         res.status(201).json({ status: true, orderId: order._id });
 
