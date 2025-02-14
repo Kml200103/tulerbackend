@@ -143,15 +143,27 @@ const resetPassword = async (req, res) => {
 }
 
 const removeUser = async (req, res) => {
-    const { userId } = req.params
-    const user=await User.findById({_id:userId})
-    if(!user){
-        return res.status(200).json({success:false,message:"User not Found"})
+    try {
+        const { userId } = req.params;
 
+        // Check if user exists
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(200).json({ success: false, message: "User not found" });
+        }
+
+        // Delete User & Cart concurrently
+        await Promise.all([
+            Cart.deleteMany({ userId }), // Deletes all cart items related to the user
+            User.findByIdAndDelete(userId) // Deletes the user
+        ]);
+
+        return res.status(200).json({ success: true, message: "User and their cart deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
-   await Cart.findByIdAndDelete({userId})
+};
 
-   await User.findByIdAndDelete({_id:userId})
-   return res.status(200).json({ message: "User Deleted" });
-}
-export { registerOrUpdateUser, getUserById, resetPassword, forgotPassword, validateUser,removeUser }
+
+export { registerOrUpdateUser, getUserById, resetPassword, forgotPassword, validateUser, removeUser }
