@@ -38,7 +38,7 @@ const authMiddleware = async (req, res, next) => {
         }
     }
     catch (error) {
-        res.status(401).json({ status: 401, message: "Not Authorize" })
+        res.status(401).json({success:false, status: 401, message: "Not Authorize" })
     }
 
 }

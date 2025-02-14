@@ -36,11 +36,12 @@ class EmailService {
   }
 
   async sendOrderConfirmationEmail(email, orderId, items, total) {
+    console.log('items', items)
     const itemsTable = items.map(item => `
       <tr>
-        <td>${item.company}</td>
+     
         <td>${item.name}</td>
-        <td>${item.productQuantity}</td>
+        <td>${item.quantity}</td>
         <td>${item.price}</td>
       </tr>
     `).join('');

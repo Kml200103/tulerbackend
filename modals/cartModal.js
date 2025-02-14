@@ -6,6 +6,10 @@ const cartItemSchema = new mongoose.Schema({
         ref: "Product",
         required: true
     },
+    variantId: {  
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
+    },
     weight: {
         type: String,
         required: true
@@ -20,6 +24,7 @@ const cartItemSchema = new mongoose.Schema({
         required: true
     }
 });
+
 
 const cartSchema = new mongoose.Schema({
     userId: {
