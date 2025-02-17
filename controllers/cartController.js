@@ -7,14 +7,14 @@ const addToCart = async (req, res) => {
     try {
         const { productId, variantId, quantity, userId } = req.body;
 
+        // console.log('req.body', req.body)
         // Fetch product and specific variant
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        const variant = product.variants.find(v => v._id.toString() === variantId); 
-        // console.log('variant', variant)
+        const variant = product.variants.find(v => v?._id.toString() === variantId); 
         if (!variant) {
             return res.status(404).json({ success: false, message: "Variant not found" });
         }
@@ -28,11 +28,13 @@ const addToCart = async (req, res) => {
 
         // console.log('cart', cart)
         // Check if the item (same product + variant) is already in the cart
+        // Check if the item (same product + variant) is already in the cart
         const existingItem = cart.items.find(item => 
-            item.productId.toString() === productId && 
-            item.variantId.toString() === variantId
+            item?.productId?.toString() === productId && 
+            item?.variantId?.toString() === variantId
         );
         // console.log('existing', existingItem)
+        console.log("Variant ID before adding to cart:", variant?._id);
 
         if (existingItem) {
             existingItem.quantity += quantity;
@@ -72,8 +74,8 @@ const getCart = async (req, res) => {
 
             if (!product) return item; // If product is missing, return item as is
 
-            const variant = product.variants.find(v => v._id.toString() === item.variantId.toString());
-
+            const variant = product.variants.find(v => v?._id?.toString() === item?.variantId.toString());
+console.log('variant', variant)
             return {
                 _id: item._id,
                 productId: product._id,

@@ -8,7 +8,7 @@ const cartItemSchema = new mongoose.Schema({
     },
     variantId: {  
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        // required: true
     },
     weight: {
         type: String,

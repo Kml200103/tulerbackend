@@ -95,18 +95,8 @@ const getOrders = async (req, res) => {
             return res.status(404).json({ status: false, message: "No orders found" });
         }
 
-        // Group orders by addressId
-        const groupedOrders = orders.reduce((acc, order) => {
-            const addressId = order.addressId._id.toString();
-
-            if (!acc[addressId]) {
-                acc[addressId] = {
-                    address: order.addressId,
-                    orders: [],
-                };
-            }
-
-            // Format order items with full details
+        // Format orders with items, addresses, and variant details
+        const formattedOrders = orders.map(order => {
             const formattedItems = order.items.map(item => {
                 const product = item.productId;
 
@@ -123,24 +113,24 @@ const getOrders = async (req, res) => {
                 };
             });
 
-            acc[addressId].orders.push({
+            return {
                 orderId: order._id,
                 items: formattedItems,
                 totalPrice: order.totalPrice,
                 status: order.status,
                 paymentStatus: order.paymentStatus,
                 createdAt: order.createdAt,
-            });
+                address: order.addressId, // Include full address details
+            };
+        });
 
-            return acc;
-        }, {});
-
-        res.status(200).json({ status: true, groupedOrders });
+        res.status(200).json({ status: true, orders: formattedOrders });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: "Internal Server Error" });
     }
 };
+
 
 
 
@@ -206,38 +196,42 @@ const getOrderDetails = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body;
-        // paymentStatus, payment_intent, invoiceUrl
-        // Validate request body
+
         if (!orderId || !status) {
             return res.status(400).json({ status: false, message: "Order ID and status are required" });
         }
 
-        // Check if the order exists
-        const order = await Order.findById(orderId);
+        // Fetch the order with user details
+        const order = await Order.findById(orderId).populate('userId', 'email');
+
         if (!order) {
             return res.status(404).json({ status: false, message: "Order not found" });
         }
 
-        // Prepare update data
-        const updateData = {
-            status,
-            updatedAt: new Date(),
-        };
-
-        // if (paymentStatus) {
-        //     updateData.paymentStatus = paymentStatus;
-        // }
-
-        // if (payment_intent) {
-        //     updateData.paymentIntent = payment_intent;
-        // }
-
-        // if (invoiceUrl) {
-        //     updateData.invoiceUrl = invoiceUrl;
-        // }
-
-        // Update the order in MongoDB
+        // Update the order status
+        const updateData = { status, updatedAt: new Date() };
         const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, { new: true });
+
+        // If the order is canceled, restore inventory
+        if (status === 'CANCEL') {
+            for (const item of order.items) {
+                const { productId, quantity, variantId } = item;
+
+                // Update the specific variant quantity
+                await Product.findOneAndUpdate(
+                    { _id: productId, "variants._id": variantId },
+                    { $inc: { "variants.$.quantity": quantity } } // Increment variant quantity
+                );
+            }
+
+            console.log('order.items', order.items)
+            // Send cancellation email if user email exists
+            if (order.userId.email) {
+                await emailService.sendOrderCancellationEmail(order.userId.email, orderId, order.items, order.totalPrice || 0);
+            } else {
+                console.error("User email not found");
+            }
+        }
 
         return res.status(200).json({
             status: true,
@@ -249,7 +243,8 @@ const updateOrderStatus = async (req, res) => {
         console.error("Error updating order status:", error);
         return res.status(500).json({ status: false, message: "Internal Server Error" });
     }
-};
+}
+
 
 
 

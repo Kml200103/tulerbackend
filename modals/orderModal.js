@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { paymentStatus, statusTypes } from "../constants/constant.js";
 
 const OrderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -14,8 +15,8 @@ const OrderSchema = new mongoose.Schema({
     }
   ],
   totalPrice:Number,
-  status: { type: String, enum: ['PENDING', 'COMPLETED', 'CANCELED'], default: 'PENDING' },
-  paymentStatus: { type: String, enum: ['PAID', 'UNPAID'], default: 'UNPAID' },
+  status: { type: String, enum: Object.values(statusTypes), default: statusTypes.PENDING },
+  paymentStatus: { type: String, enum: Object.values(paymentStatus), default: paymentStatus.UNPAID },
   createdAt: { type: Date, default: Date.now }
 });
 
