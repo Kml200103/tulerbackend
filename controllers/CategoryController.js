@@ -4,16 +4,42 @@
 
 import Category from "../modals/categoryModal.js";
 
+// const getAllCategories = async (req, res) => {
+//     try {
+//         const categories = await Category.find();
+//         res.status(200).json({ success: true, categories });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
 const getAllCategories = async (req, res) => {
-    try {
-        const categories = await Category.find();
-        res.status(200).json({ success: true, categories });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
+    
+        try {
+          // Fetch all categories
+          const categories = await Category.find();
+      
+          // Create an array to hold category product counts
+          const categoriesWithCounts = await Promise.all(
+            categories.map(async (category) => {
+              const productCount = await Product.countDocuments({
+                categoryId: category._id,
+              });
+              return {
+                id: category._id,
+                name: category.name,
+                productCount: productCount,
+              };
+            })
+          );
+      
+          res.status(200).json({ success: true, categories: categoriesWithCounts });
+        } catch (error) {
+          res.status(500).json({ success: false, error: error.message });
+        }
+      
+      
 }
-
-
 
 const getCategoriesById = async (req, res) => {
     try {
