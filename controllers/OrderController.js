@@ -1,5 +1,6 @@
 
 
+import Cart from "../modals/cartModal.js";
 import Order from "../modals/orderModal.js";
 import Product from "../modals/productModal.js";
 import User from "../modals/userModal.js";
@@ -33,9 +34,9 @@ const placeOrder = async (req, res) => {
 
             // Check if the variant has enough stock
             if (variant.quantity < item.quantity) {
-                return res.status(400).json({ 
-                    status: false, 
-                    message: `Insufficient stock for ${product.name} (Variant: ${variant.weight})` 
+                return res.status(400).json({
+                    status: false,
+                    message: `Insufficient stock for ${product.name} (Variant: ${variant.weight})`
                 });
             }
 
@@ -66,6 +67,8 @@ const placeOrder = async (req, res) => {
 
         await order.save();
 
+
+        await Cart.findOneAndDelete({ userId });
         // Send email notification
         await emailService.sendOrderConfirmationEmail(user.email, order._id, orderItems, totalPrice);
 
@@ -114,7 +117,7 @@ const getOrders = async (req, res) => {
                     price: item.price,
                     totalPrice: item.totalPrice,
                     variantId: item.variantId,
-                    variantDetails: product.variants?.find(variant => 
+                    variantDetails: product.variants?.find(variant =>
                         variant._id.toString() === item.variantId.toString()
                     ) || null, // Fetch matching variant details
                 };
@@ -163,7 +166,7 @@ const getOrderDetails = async (req, res) => {
             if (!product) return null;
 
             // Find the matching variant
-            const matchingVariant = product.variants.find(variant => 
+            const matchingVariant = product.variants.find(variant =>
                 variant._id.toString() === item.variantId.toString()
             );
 
@@ -197,4 +200,58 @@ const getOrderDetails = async (req, res) => {
 };
 
 
-export { getOrders, getOrderDetails, placeOrder };
+
+
+// Update Order Status API
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+        // paymentStatus, payment_intent, invoiceUrl
+        // Validate request body
+        if (!orderId || !status) {
+            return res.status(400).json({ status: false, message: "Order ID and status are required" });
+        }
+
+        // Check if the order exists
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ status: false, message: "Order not found" });
+        }
+
+        // Prepare update data
+        const updateData = {
+            status,
+            updatedAt: new Date(),
+        };
+
+        // if (paymentStatus) {
+        //     updateData.paymentStatus = paymentStatus;
+        // }
+
+        // if (payment_intent) {
+        //     updateData.paymentIntent = payment_intent;
+        // }
+
+        // if (invoiceUrl) {
+        //     updateData.invoiceUrl = invoiceUrl;
+        // }
+
+        // Update the order in MongoDB
+        const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, { new: true });
+
+        return res.status(200).json({
+            status: true,
+            message: "Order status updated successfully",
+            updatedOrder,
+        });
+
+    } catch (error) {
+        console.error("Error updating order status:", error);
+        return res.status(500).json({ status: false, message: "Internal Server Error" });
+    }
+};
+
+
+
+
+export { getOrders, getOrderDetails, placeOrder, updateOrderStatus };
