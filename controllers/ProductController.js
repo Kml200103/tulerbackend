@@ -57,13 +57,38 @@ const createOrUpdateProduct = async (req, res) => {
 };
 const getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find()
-        return res.status(200).json({ products,success:true });
+        const { categoryId, page = 1, pageSize = 10 } = req.query;
+
+        // Convert page and pageSize to numbers
+        const pageNumber = parseInt(page, 10);
+        const limit = parseInt(pageSize, 10);
+        const skip = (pageNumber - 1) * limit;
+
+        // Build the filter object
+        const filter = categoryId ? { categoryId } : {};
+
+        // Fetch products with filtering and pagination
+        const products = await Product.find(filter)
+            .skip(skip)
+            .limit(limit);
+
+        // Get total product count for pagination
+        const totalProducts = await Product.countDocuments(filter);
+
+        return res.status(200).json({
+            success: true,
+            products,
+            page: pageNumber,
+            pageSize: limit,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts
+        });
     } catch (error) {
         console.error("Error fetching products:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
 
 /**
  * @desc Get product by ID

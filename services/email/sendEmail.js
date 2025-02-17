@@ -36,7 +36,7 @@ class EmailService {
   }
 
   async sendOrderConfirmationEmail(email, orderId, items, total) {
-    console.log('items', items)
+    // console.log('items', items)
     const itemsTable = items.map(item => `
       <tr>
      

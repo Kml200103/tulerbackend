@@ -32,7 +32,7 @@ const addToCart = async (req, res) => {
             item.productId.toString() === productId && 
             item.variantId.toString() === variantId
         );
-        console.log('existing', existingItem)
+        // console.log('existing', existingItem)
 
         if (existingItem) {
             existingItem.quantity += quantity;
@@ -105,7 +105,7 @@ const updateCartItem = async (req, res) => {
     try {
         const { userId, productId, weight, quantity } = req.body;
 
-        console.log('req.body:', req.body);
+        // console.log('req.body:', req.body);
         
         const cart = await Cart.findOne({ userId });
         if (!cart) {

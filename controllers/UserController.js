@@ -8,7 +8,7 @@ const registerOrUpdateUser = async (req, res) => {
     try {
         const { id, name, email, password, phone } = req.body;
 
-        console.log('req.body', req.body)
+        // console.log('req.body', req.body)
         // Validate required fields
         if (!name || !email) {
             return res.status(400).json({ error: "Name and email are required." });
