@@ -3,6 +3,7 @@
 // Get all categories
 
 import Category from "../modals/categoryModal.js";
+import Product from "../modals/productModal.js";
 
 // const getAllCategories = async (req, res) => {
 //     try {
