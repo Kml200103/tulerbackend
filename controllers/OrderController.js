@@ -85,11 +85,22 @@ const placeOrder = async (req, res) => {
 const getOrders = async (req, res) => {
     try {
         const { userId } = req.params;
+        const { page = 1, pageSize = 10 } = req.query;
 
-        // Fetch all orders for the user and populate necessary fields
+        // Convert page and pageSize to numbers
+        const pageNumber = parseInt(page, 10);
+        const limit = parseInt(pageSize, 10);
+        const skip = (pageNumber - 1) * limit;
+
+        // Fetch paginated orders for the user
         const orders = await Order.find({ userId })
             .populate("items.productId")
-            .populate("addressId");
+            .populate("addressId")
+            .skip(skip)
+            .limit(limit);
+
+        // Get total order count for pagination
+        const totalOrders = await Order.countDocuments({ userId });
 
         if (!orders.length) {
             return res.status(404).json({ status: false, message: "No orders found" });
@@ -107,6 +118,7 @@ const getOrders = async (req, res) => {
                     price: item.price,
                     totalPrice: item.totalPrice,
                     variantId: item.variantId,
+                    image: product.images,
                     variantDetails: product.variants?.find(variant =>
                         variant._id.toString() === item.variantId.toString()
                     ) || null, // Fetch matching variant details
@@ -124,12 +136,22 @@ const getOrders = async (req, res) => {
             };
         });
 
-        res.status(200).json({ status: true, orders: formattedOrders });
+        res.status(200).json({
+            status: true,
+            orders: formattedOrders,
+            pagination: {
+                totalOrders,
+                currentPage: pageNumber,
+                totalPages: Math.ceil(totalOrders / limit),
+                pageSize: limit,
+            },
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: "Internal Server Error" });
     }
 };
+
 
 
 
@@ -189,6 +211,74 @@ const getOrderDetails = async (req, res) => {
     }
 };
 
+const getAllOrders = async (req, res) => {
+    try {
+        const { page = 1, pageSize = 10 } = req.query;
+
+        // Convert page and pageSize to numbers
+        const pageNumber = parseInt(page, 10);
+        const limit = parseInt(pageSize, 10);
+        const skip = (pageNumber - 1) * limit;
+
+        // Fetch paginated orders and populate necessary fields
+        const orders = await Order.find()
+            .populate("items.productId")
+            .populate("addressId")
+            .skip(skip)
+            .limit(limit);
+
+        // Get total order count for pagination
+        const totalOrders = await Order.countDocuments();
+
+        if (!orders.length) {
+            return res.status(404).json({ status: false, message: "No orders found" });
+        }
+
+        // Format orders with items, addresses, and variant details
+        const formattedOrders = orders.map(order => {
+            const formattedItems = order.items.map(item => {
+                const product = item.productId;
+
+                return {
+                    productId: product._id,
+                    productName: product.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    totalPrice: item.totalPrice,
+                    variantId: item.variantId,
+                    variantDetails: product.variants?.find(variant =>
+                        variant._id.toString() === item.variantId.toString()
+                    ) || null, // Fetch matching variant details
+                };
+            });
+
+            return {
+                orderId: order._id,
+                items: formattedItems,
+                totalPrice: order.totalPrice,
+                status: order.status,
+                paymentStatus: order.paymentStatus,
+                createdAt: order.createdAt,
+                address: order.addressId, // Include full address details
+            };
+        });
+
+        res.status(200).json({
+            status: true,
+            orders: formattedOrders,
+            pagination: {
+                totalOrders,
+                currentPage: pageNumber,
+                totalPages: Math.ceil(totalOrders / limit),
+                pageSize: limit,
+            },
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: false, message: "Internal Server Error" });
+    }
+};
+
 
 
 
@@ -224,7 +314,7 @@ const updateOrderStatus = async (req, res) => {
                 );
             }
 
-            console.log('order.items', order.items)
+            // console.log('order.items', order.items)
             // Send cancellation email if user email exists
             if (order.userId.email) {
                 await emailService.sendOrderCancellationEmail(order.userId.email, orderId, order.items, order.totalPrice || 0);
@@ -236,7 +326,7 @@ const updateOrderStatus = async (req, res) => {
         return res.status(200).json({
             status: true,
             message: "Order status updated successfully",
-            updatedOrder,
+            // updatedOrder,
         });
 
     } catch (error) {
@@ -249,4 +339,4 @@ const updateOrderStatus = async (req, res) => {
 
 
 
-export { getOrders, getOrderDetails, placeOrder, updateOrderStatus };
+export { getOrders, getOrderDetails, placeOrder, updateOrderStatus, getAllOrders };
