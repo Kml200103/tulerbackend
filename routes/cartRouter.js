@@ -6,9 +6,11 @@ import {
     removeCartItem,
     clearCart
 } from "../controllers/cartController.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const cartRouter = new express.Router();
 
+// cartRouter.use(authMiddleware)
 // Add product to cart
 cartRouter.post("/cart/add", addToCart);
 

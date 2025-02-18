@@ -16,15 +16,16 @@ const authMiddleware = async (req, res, next) => {
 
     try {
         const header = req.headers['authorization'];
+        // console.log('header', header)
 
       
         if (typeof header !== 'undefined') {
             const bearer = header.split(' ');
             const token = bearer[1];
 
-            
             const verifytoken = jwt.verify(token, config.jwtsecret)
 
+            console.log('verifytoken', verifytoken)
             const rootUser = await User.findOne({ _id: verifytoken.id });
             if (!rootUser) {
                 throw new Error("user not found")
@@ -35,6 +36,9 @@ const authMiddleware = async (req, res, next) => {
 
             req.userId = rootUser._id
             next();
+        }
+        else{
+            res.status(401).json({success:false, status: 401, message: "Not Authorize" })
         }
     }
     catch (error) {
