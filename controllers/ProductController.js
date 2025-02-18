@@ -67,10 +67,16 @@ const getAllProducts = async (req, res) => {
         // Build the filter object
         const filter = categoryId ? { categoryId } : {};
 
-        // Fetch products with filtering and pagination
+        // Fetch products with filtering, pagination, and sorting by totalSold
         const products = await Product.find(filter)
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .sort({ totalSold: -1 }); // Sorting by totalSold in descending order
+
+        // Fetch top 3 products based on totalSold
+        const topProducts = await Product.find(filter)
+            .sort({ totalSold: -1 })
+            .limit(3); // Top 3 products based on totalSold
 
         // Get total product count for pagination
         const totalProducts = await Product.countDocuments(filter);
@@ -78,6 +84,7 @@ const getAllProducts = async (req, res) => {
         return res.status(200).json({
             success: true,
             products,
+            topProducts, // Include top 3 products
             page: pageNumber,
             pageSize: limit,
             totalPages: Math.ceil(totalProducts / limit),
@@ -88,6 +95,7 @@ const getAllProducts = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
 
 
 /**
@@ -142,9 +150,18 @@ const getProductByCategory = async (req, res) => {
         const limitNumber = parseInt(limit, 10);
 
         // Fetch filtered products with pagination
-        const products = await Product.find(query)
-            .skip((pageNumber - 1) * limitNumber)
-            .limit(limitNumber);
+        // const products = await Product.find(query)
+        //     .skip((pageNumber - 1) * limitNumber)
+        //     .limit(limitNumber);
+            const products = await Product.find(filter)
+            .skip(skip)
+            .limit(limit)
+            .sort({ totalSold: -1 }); // Sorting by totalSold in descending order
+
+        // Fetch top 3 products based on totalSold
+        const topProducts = await Product.find(filter)
+            .sort({ totalSold: -1 })
+            .limit(3); // Top 3 products based on totalSold
 
         // Get total count for pagination metadata
         const totalProducts = await Product.countDocuments(query);
@@ -152,6 +169,7 @@ const getProductByCategory = async (req, res) => {
         return res.status(200).json({
             success: true,
             products,
+            topProducts,
             currentPage: pageNumber,
             totalPages: Math.ceil(totalProducts / limitNumber),
             totalProducts

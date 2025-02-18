@@ -25,7 +25,7 @@ const authMiddleware = async (req, res, next) => {
 
             const verifytoken = jwt.verify(token, config.jwtsecret)
 
-            console.log('verifytoken', verifytoken)
+            // console.log('verifytoken', verifytoken)
             const rootUser = await User.findOne({ _id: verifytoken.id });
             if (!rootUser) {
                 throw new Error("user not found")

@@ -42,6 +42,8 @@ const placeOrder = async (req, res) => {
 
             // Deduct quantity from the correct variant
             variant.quantity -= item.quantity;
+            // increase the total sold
+            product.totalSold += item.quantity
             await product.save();
 
             // Prepare order item

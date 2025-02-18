@@ -34,7 +34,7 @@ const addToCart = async (req, res) => {
             item?.variantId?.toString() === variantId
         );
         // console.log('existing', existingItem)
-        console.log("Variant ID before adding to cart:", variant?._id);
+        // console.log("Variant ID before adding to cart:", variant?._id);
 
         if (existingItem) {
             existingItem.quantity += quantity;
@@ -75,7 +75,7 @@ const getCart = async (req, res) => {
             if (!product) return item; // If product is missing, return item as is
 
             const variant = product.variants.find(v => v?._id?.toString() === item?.variantId.toString());
-console.log('variant', variant)
+// console.log('variant', variant)
             return {
                 _id: item._id,
                 productId: product._id,
