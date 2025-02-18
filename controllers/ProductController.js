@@ -149,6 +149,9 @@ const getProductByCategory = async (req, res) => {
         const pageNumber = parseInt(page, 10);
         const limitNumber = parseInt(limit, 10);
 
+
+        const filter = categoryId ? { categoryId } : {};
+
         // Fetch filtered products with pagination
         // const products = await Product.find(query)
         //     .skip((pageNumber - 1) * limitNumber)
