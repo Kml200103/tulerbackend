@@ -146,9 +146,10 @@ const getProductByCategory = async (req, res) => {
         }
 
         // Convert page and limit to numbers
+      
         const pageNumber = parseInt(page, 10);
-        const limitNumber = parseInt(limit, 10);
-
+        // const limit = parseInt(pageSize, 10);
+        const skip = (pageNumber - 1) * limit;
 
         const filter = categoryId ? { categoryId } : {};
 
@@ -174,7 +175,7 @@ const getProductByCategory = async (req, res) => {
             products,
             topProducts,
             currentPage: pageNumber,
-            totalPages: Math.ceil(totalProducts / limitNumber),
+            totalPages: Math.ceil(totalProducts / limit),
             totalProducts
         });
     } catch (error) {
