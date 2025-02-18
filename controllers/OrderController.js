@@ -243,6 +243,7 @@ const getAllOrders = async (req, res) => {
                     productId: product._id,
                     productName: product.name,
                     quantity: item.quantity,
+                    image: product.images,
                     price: item.price,
                     totalPrice: item.totalPrice,
                     variantId: item.variantId,
