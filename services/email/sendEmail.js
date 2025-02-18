@@ -35,6 +35,37 @@ class EmailService {
     }
   }
 
+
+  async sendNewsletterSubscriptionEmail(email) {
+    const confirmationUrl = `${config.frontendUrl}/confirm-subscription/?email=${encodeURIComponent(email)}`;
+    
+    const mailOptions = {
+      from: config.userEmail,
+      to: email,
+      subject: ' Newsletter Subscription Confirmation',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+          <h2 style="text-align: center; color: #333;">Welcome to Our Newsletter!</h2>
+          <p style="color: #555; font-size: 16px;">Thank you for subscribing to our newsletter! We’re excited to keep you updated with the latest news and special offers.</p>
+          
+       
+          
+         
+  
+          <p style="color: #777; font-size: 14px; text-align: center;">If you didn’t request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    };
+  
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Newsletter subscription email sent to ${email}`);
+    } catch (error) {
+      console.error('Error sending newsletter email:', error.message);
+      throw new Error('Failed to send email');
+    }
+  }
+  
   async sendOrderConfirmationEmail(email, orderId, items, total) {
     const itemsTable = items.map(item => `
       <tr>
