@@ -1,9 +1,7 @@
 import Offer from "../modals/offerModal.js";
 import { applyOffer } from "../services/utils/helper.js";
 
-
-
-
+// Add multiple offers
 const addOffers = async (req, res) => {
     try {
         const wheelData = [
@@ -29,10 +27,8 @@ const addOffer = async (req, res) => {
     try {
         const { option, type, value } = req.body;
 
-        console.log('req.body', req.body)
-        
         if (!option || !type || !value) {
-            return res.status(400).json({ message: "Offer option is required" });
+            return res.status(400).json({ message: "Offer option, type, and value are required" });
         }
 
         const newOffer = new Offer({ option, type, value });
@@ -53,7 +49,49 @@ const getOffers = async (req, res) => {
     }
 };
 
+// Edit an offer
+const updateOffer = async (req, res) => {
+    try {
+        const { offerId } = req.params;
+        const { option, type, value } = req.body;
 
+        if (!option || !type || !value) {
+            return res.status(400).json({ message: "Offer option, type, and value are required" });
+        }
+
+        const updatedOffer = await Offer.findByIdAndUpdate(
+            offerId,
+            { option, type, value },
+            { new: true }
+        );
+
+        if (!updatedOffer) {
+            return res.status(404).json({ message: "Offer not found" });
+        }
+
+        res.status(200).json({ message: "Offer updated successfully", offer: updatedOffer });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Delete an offer
+const deleteOffer = async (req, res) => {
+    try {
+        const { offerId } = req.params;
+
+        const deletedOffer = await Offer.findByIdAndDelete(offerId);
+        if (!deletedOffer) {
+            return res.status(404).json({ message: "Offer not found" });
+        }
+
+        res.status(200).json({ message: "Offer deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Apply discount
 const applyDiscount = async (req, res) => {
     try {
         const { totalPrice, offerId } = req.body;
@@ -64,16 +102,14 @@ const applyDiscount = async (req, res) => {
 
         const offer = await Offer.findById(offerId);
         if (!offer) {
-            return res.status(404).json({ message: "Offer not found" });
+            return res.status(404).json({ success:false,message: "Offer not found" });
         }
 
         const discountedPrice = applyOffer(totalPrice, offer);
-        res.status(200).json({ originalPrice: totalPrice, discountedPrice });
+        res.status(200).json({ success:true,originalPrice: totalPrice, discountedPrice });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-
-
-export { addOffer, addOffers, getOffers, applyDiscount }
+export { addOffer, addOffers, getOffers, updateOffer, deleteOffer, applyDiscount };
