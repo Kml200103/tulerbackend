@@ -27,12 +27,15 @@ const addOffers = async (req, res) => {
 // Add a single offer
 const addOffer = async (req, res) => {
     try {
-        const { option } = req.body;
-        if (!option) {
+        const { option, type, value } = req.body;
+
+        console.log('req.body', req.body)
+        
+        if (!option || !type || !value) {
             return res.status(400).json({ message: "Offer option is required" });
         }
 
-        const newOffer = new Offer({ option });
+        const newOffer = new Offer({ option, type, value });
         await newOffer.save();
         res.status(201).json({ message: "Offer added successfully", offer: newOffer });
     } catch (error) {
