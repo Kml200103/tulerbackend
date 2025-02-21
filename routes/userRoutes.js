@@ -21,4 +21,6 @@ userRouter.post('/forgot-password',forgotPassword)
 userRouter.post('/reset-password', resetPassword)
 
 userRouter.delete('/remove/:userId',removeUser)
+
+
 export default userRouter

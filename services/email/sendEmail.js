@@ -176,6 +176,38 @@ async sendOrderCancellationEmail(email, orderId, items, refundAmount) {
   }
 }
 
+async sendFeedbackEmail(feedback) {
+  const { name, email, subject, description } = feedback;
+
+  const mailOptions = {
+    from: email, // User's email
+    to: config.userEmail, // Admin email to receive feedback
+    subject: `Feedback from ${name}: ${subject}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #ffffff;">
+        <h2 style="text-align: center; color: #4A90E2;">User  Feedback</h2>
+        <p style="color: #555; font-size: 16px; margin: 10px 0;"><strong>Name:</strong> ${name}</p>
+        <p style="color: #555; font-size: 16px; margin: 10px 0;"><strong>Email:</strong> ${email}</p>
+        <p style="color: #555; font-size: 16px; margin: 10px 0;"><strong>Subject:</strong> ${subject}</p>
+        <hr style="border: 1px solid #4A90E2; margin: 20px 0;" />
+        <p style="color: #555; font-size: 16px;"><strong>Description:</strong></p>
+        <p style="color: #777; font-size: 14px; line-height: 1.5;">${description}</p>
+        <div style="margin-top: 20px; text-align: center;">
+          <p style="color: #999; font-size: 12px;">This email was sent from a feedback form on your website.</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await this.transporter.sendMail(mailOptions);
+    console.log(`Feedback email sent from ${email}`);
+  } catch (error) {
+    console.error("Error sending feedback email:", error.message);
+    throw new Error("Failed to send feedback email");
+  }
+}
+
 }
 const emailService = new EmailService();
 export default emailService

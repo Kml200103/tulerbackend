@@ -4,8 +4,8 @@ const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
     description: { type: String },
-    images: { type: [String], default: [] },
-
+    images: { type: String }, // Single Image
+    otherImages: { type: [String], default: [] }, // Multiple Images
     variants: [
         {
             weight: { type: String, required: true },

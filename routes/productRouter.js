@@ -3,10 +3,14 @@ import multer from "multer";
 import { createOrUpdateProduct, deleteProduct, getAllProducts, getProductByCategory, getProductById } from "../controllers/ProductController.js";
 
 const storage = multer.memoryStorage();
-const upload = multer({ 
+const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
-}).array("images", 5); // Allow up to 5 images
+    limits: { fileSize: 5 * 1024 * 1024 }, 
+}).fields([
+    { name: "coverImage", maxCount: 1 }, 
+    { name: "images", maxCount: 5 } 
+]);
+
 
 const productRouter =new express.Router();
 

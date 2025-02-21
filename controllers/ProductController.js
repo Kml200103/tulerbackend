@@ -4,57 +4,71 @@ import { uploadToCloudinary } from "../services/upload/fileUpload.js";
 const createOrUpdateProduct = async (req, res) => {
     try {
         const { productId, name, categoryId, description, variants } = req.body;
-        const { files } = req;
-        const imageUrls = [];
-
-       
-        if (files) {
-            const urls = await uploadToCloudinary(files);
-            imageUrls.push(...urls);
-        }
+        const files = req.files;
 
         if (!name || !categoryId || !description || !variants) {
             return res.status(400).json({ message: "All fields are mandatory" });
         }
 
+        let imageUrl = "";
+        let otherImageUrls = [];
+
+        // Upload images in parallel using Promise.all
+        const uploadPromises = [];
+
+        console.log('files', files)
+        console.log('files?.otherImages', files?.otherImages)
+        console.log('files?.image', files?.coverImage)
+        if (files?.coverImage) {
+            uploadPromises.push(uploadToCloudinary(files.coverImage).then(urls => imageUrl = urls[0]));
+        }
+
+        if (files?.images) {
+            uploadPromises.push(uploadToCloudinary(files?.images).then(urls => otherImageUrls = urls));
+        }
+
+        await Promise.all(uploadPromises);
+
         let product;
         if (productId) {
-            // Update existing product
+            // Fetch product only if it exists
             product = await Product.findById(productId);
             if (!product) {
                 return res.status(404).json({ message: "Product not found" });
             }
 
+            // Update only the necessary fields
             product.name = name;
             product.categoryId = categoryId;
             product.description = description;
             product.variants = variants;
-
-            // Append new images if uploaded
-            if (imageUrls.length > 0) {
-                product.images.push(...imageUrls);
-            }
+            if (imageUrl) product.images = imageUrl;
+            if (otherImageUrls.length) product.otherImages.push(...otherImageUrls);
 
             await product.save();
             return res.status(200).json({ message: "Product updated successfully", product });
-        } else {
-            // Create a new product
-            product = new Product({
-                name,
-                categoryId,
-                description,
-                images: imageUrls,
-                variants
-            });
+        } 
 
-            await product.save();
-            return res.status(201).json({ message: "Product added successfully", product });
-        }
+        // Create a new product if productId is not provided
+        product = new Product({
+            name,
+            categoryId,
+            description,
+            images: imageUrl,
+            otherImages: otherImageUrls,
+            variants
+        });
+
+        await product.save();
+        return res.status(201).json({ message: "Product added successfully", product });
+
     } catch (error) {
         console.error("Error creating/updating product:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+
 const getAllProducts = async (req, res) => {
     try {
         const { categoryId, page = 1, pageSize = 10 } = req.query;
