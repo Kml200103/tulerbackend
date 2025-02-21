@@ -13,6 +13,7 @@ const productSchema = new mongoose.Schema({
             quantity: { type: Number, required: true },
         },
     ],
+    benefits: { type: [String], default: [] }, // Multiple Images
     isAvailable: { type: Boolean, default: true },
     isDisabled: { type: Boolean, default: false },
     isPermanentDeleted: { type: Boolean, default: false },

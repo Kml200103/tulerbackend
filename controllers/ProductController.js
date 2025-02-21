@@ -3,7 +3,7 @@ import { uploadToCloudinary } from "../services/upload/fileUpload.js";
 
 const createOrUpdateProduct = async (req, res) => {
     try {
-        const { productId, name, categoryId, description, variants } = req.body;
+        const { productId, name, categoryId, description, variants ,benefits} = req.body;
         const files = req.files;
 
         if (!name || !categoryId || !description || !variants) {
@@ -16,9 +16,7 @@ const createOrUpdateProduct = async (req, res) => {
         // Upload images in parallel using Promise.all
         const uploadPromises = [];
 
-        console.log('files', files)
-        console.log('files?.otherImages', files?.otherImages)
-        console.log('files?.image', files?.coverImage)
+     
         if (files?.coverImage) {
             uploadPromises.push(uploadToCloudinary(files.coverImage).then(urls => imageUrl = urls[0]));
         }
@@ -42,6 +40,7 @@ const createOrUpdateProduct = async (req, res) => {
             product.categoryId = categoryId;
             product.description = description;
             product.variants = variants;
+            product.benefits=benefits
             if (imageUrl) product.images = imageUrl;
             if (otherImageUrls.length) product.otherImages.push(...otherImageUrls);
 
@@ -56,7 +55,8 @@ const createOrUpdateProduct = async (req, res) => {
             description,
             images: imageUrl,
             otherImages: otherImageUrls,
-            variants
+            variants,
+            benefits
         });
 
         await product.save();
