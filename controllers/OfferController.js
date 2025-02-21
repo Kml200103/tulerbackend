@@ -102,11 +102,11 @@ const applyDiscount = async (req, res) => {
 
         const offer = await Offer.findById(offerId);
         if (!offer) {
-            return res.status(404).json({ success:false,message: "Offer not found" });
+            return res.status(404).json({ success: false, message: "Offer not found" });
         }
 
         const discountedPrice = applyOffer(totalPrice, offer);
-        res.status(200).json({ success:true,originalPrice: totalPrice, discountedPrice });
+        res.status(200).json({ success: true, originalPrice: totalPrice, discountedPrice });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
