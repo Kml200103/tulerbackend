@@ -110,9 +110,11 @@ const getOrders = async (req, res) => {
 
         // Format orders with items, addresses, and variant details
         const formattedOrders = orders.map(order => {
-            const formattedItems = order.items.map(item => {
+            const formattedItems = order?.items.map(item => {
+                console.log('item', item)
                 const product = item.productId;
 
+                // console.log('product', product)
                 return {
                     productId: product._id,
                     productName: product.name,
@@ -242,7 +244,7 @@ const getAllOrders = async (req, res) => {
                 const product = item.productId;
 
                 return {
-                    productId: product._id,
+                    productId: product?._id,
                     productName: product.name,
                     quantity: item.quantity,
                     image: product.images,
@@ -256,7 +258,7 @@ const getAllOrders = async (req, res) => {
             });
 
             return {
-                orderId: order._id,
+                orderId: order?._id,
                 items: formattedItems,
                 totalPrice: order.totalPrice,
                 status: order.status,
