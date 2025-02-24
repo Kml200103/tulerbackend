@@ -1,5 +1,5 @@
 import express from "express"
-import { getAllOrders, getOrderDetails, getOrders, placeOrder, updateOrderStatus } from "../controllers/OrderController.js"
+import { getAllOrders, getOrderDetails, getOrders, makePayment, placeOrder, updateOrderStatus } from "../controllers/OrderController.js"
 import { authMiddleware } from "../middlewares/authMiddleware.js"
 
 
@@ -13,4 +13,6 @@ orderRouter.get('/order/all', getAllOrders)
 orderRouter.post('/order/status', updateOrderStatus)
 orderRouter.get('/order/:orderId', getOrderDetails)
 
+
+orderRouter.post('/order/retryPayment/:orderId',makePayment)
 export default orderRouter

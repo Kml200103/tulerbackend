@@ -1,11 +1,14 @@
 
 
+import { paymentStatus } from "../constants/constant.js";
 import Cart from "../modals/cartModal.js";
 import Order from "../modals/orderModal.js";
 import Product from "../modals/productModal.js";
 import User from "../modals/userModal.js";
 import emailService from "../services/email/sendEmail.js";
-
+import Stripe from "stripe"
+import config from "../config/index.js";
+const stripe = new Stripe(config.stripeSecret); // Store your secret key in .env
 
 
 const placeOrder = async (req, res) => {
@@ -69,6 +72,25 @@ const placeOrder = async (req, res) => {
 
         await order.save();
 
+        // const session = await stripe.checkout.sessions.create({
+        //     payment_method_types: ['card'],
+        //     line_items: orderItems.map(item => ({
+        //         price_data: {
+        //             currency: 'usd', // Change to your currency
+        //             product_data: {
+        //                 name: item.name,
+        //             },
+        //             unit_amount: item.price * 100, // Stripe uses cents
+        //         },
+        //         quantity: item.quantity,
+        //     })),
+        //     mode: 'payment',
+        //     success_url: `${config.frontendUrl}/order/success?orderId=${order._id}`, // Redirect to success page
+        //     cancel_url: `${config.frontendUrl}/order/cancel?orderId=${order._id}`, // Redirect to cancel page
+        //     metadata: {
+        //         orderId: order._id.toString(),
+        //     },
+        // });
 
         await Cart.findOneAndDelete({ userId });
         // Send email notification
@@ -341,7 +363,46 @@ const updateOrderStatus = async (req, res) => {
 }
 
 
+const makePayment=async(req,res)=>{
+    try {
+        const { orderId } = req.params;
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ status: false, message: 'Order not found' });
+        }
+
+        if (order.paymentStatus === paymentStatus.PAID) {
+            return res.status(400).json({ status: false, message: 'Order already paid' });
+        }
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: order.items.map(item => ({
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: item.name,
+                    },
+                    unit_amount: item.price * 100,
+                },
+                quantity: item.quantity,
+            })),
+            mode: 'payment',
+            success_url: `${config?.frontendUrl}/order/success?orderId=${order._id}`,
+            cancel_url: `${config?.frontendUrl}/order/cancel?orderId=${order._id}`,
+            metadata: {
+                orderId: order._id.toString(),
+            },
+        });
+
+        res.status(200).json({ status: true, sessionId: session.id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: false, message: 'Internal Server Error' });
+    }
+}
 
 
 
-export { getOrders, getOrderDetails, placeOrder, updateOrderStatus, getAllOrders };
+export { getOrders, getOrderDetails, placeOrder, updateOrderStatus, getAllOrders ,makePayment};

@@ -18,5 +18,6 @@ export default{
     frontendUrl:process.env.FRONTEND_URL,
     userEmail:process.env.EMAIL_USER,
     smtpUser:process.env.SMTP_USER,
-    smtpPass:process.env.SMTP_PASS
+    smtpPass:process.env.SMTP_PASS,
+    stripeSecret:process.env.STRIPE_SECRET_KEY
 }
