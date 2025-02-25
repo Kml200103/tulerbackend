@@ -16,7 +16,7 @@ import { uploadToCloudinary } from "../services/upload/fileUpload.js";
 //         // Upload images in parallel using Promise.all
 //         const uploadPromises = [];
 
-     
+
 //         if (files?.coverImage) {
 //             uploadPromises.push(uploadToCloudinary(files.coverImage).then(urls => imageUrl = urls[0]));
 //         }
@@ -209,13 +209,21 @@ const getProductById = async (req, res) => {
 const deleteProduct = async (req, res) => {
     try {
         const { productId } = req.params;
-        const product = await Product.findByIdAndDelete(productId);
+        const product = await Product.findById(productId);
 
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        return res.status(200).json({ message: "Product deleted successfully" });
+        if (product.isDisabled) {
+            return res.status(400).json({ message: "product is already deleted" })
+        }
+
+        product.isDisabled = true;
+        product.deletedAt = new Date();
+        await product.save();
+
+        return res.status(200).json({ message: "Product soft deleted successfully" });
     } catch (error) {
         console.error("Error deleting product:", error);
         return res.status(500).json({ message: "Internal Server Error" });
@@ -232,18 +240,18 @@ const getProductByCategory = async (req, res) => {
         }
 
         // Convert page and limit to numbers
-      
+
         const pageNumber = parseInt(page, 10);
         // const limit = parseInt(pageSize, 10);
         const skip = (pageNumber - 1) * limit;
 
-        const filter = categoryId ? { categoryId } : {};
+        const filter = categoryId ? { categoryId, isDisabled: false } : { isDisabled: false };
 
         // Fetch filtered products with pagination
         // const products = await Product.find(query)
         //     .skip((pageNumber - 1) * limitNumber)
         //     .limit(limitNumber);
-            const products = await Product.find(filter)
+        const products = await Product.find(filter)
             .skip(skip)
             .limit(limit)
             .sort({ totalSold: -1 }); // Sorting by totalSold in descending order
@@ -270,4 +278,77 @@ const getProductByCategory = async (req, res) => {
     }
 };
 
-export { createOrUpdateProduct, getAllProducts, getProductById, deleteProduct ,getProductByCategory};
+const disableProduct=async(req,res)=>{
+    try {
+        const { productId } = req.params;
+        const{status}=req.body
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        if (product.isDisabled) {
+            return res.status(400).json({ message: "product is already deleted" })
+        }
+
+        product.isDisabled = status;
+        product.deletedAt = new Date();
+        await product.save();
+
+        return res.status(200).json({ message: "Product soft deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+const disabledProducts=async(req,res)=>{
+    try {
+        const {  page = 1, pageSize = 10 } = req.query;
+
+        // Convert page and pageSize to numbers
+        const pageNumber = parseInt(page, 10);
+        const limit = parseInt(pageSize, 10);
+        const skip = (pageNumber - 1) * limit;
+
+        // Build the filter object
+       
+
+        const products = await Product.find({isDisabled:true})
+            .skip(skip)
+            .limit(limit)
+            .sort({ totalSold: -1 }); // Sorting by totalSold in descending order
+
+        // Fetch top 3 products based on totalSold
+ console.log('products', products)
+
+        // Get total product count for pagination
+        const totalProducts = await Product.countDocuments()
+
+        return res.status(200).json({
+            success: true,
+            products,
+         
+            page: pageNumber,
+            pageSize: limit,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts
+        });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
+
+// // Example: Fetching available products
+// const availableProducts = await Product.find({ isDisabled: false });
+
+// // Example: fetching all products including deleted ones.
+// const allProducts = await Product.find();
+
+// // Example: fetching only deleted products.
+// const deletedProducts = await Product.find({isDisabled:true});
+
+
+export { createOrUpdateProduct, getAllProducts, getProductById, deleteProduct, getProductByCategory ,disableProduct,disabledProducts};
