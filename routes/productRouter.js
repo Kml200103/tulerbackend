@@ -33,4 +33,6 @@ productRouter.post('/product/disable/:productId',disableProduct)
 productRouter.get('/product', getProductByCategory);
 
 productRouter.get('/product/disableProducts',disabledProducts)
+
+
 export default productRouter;

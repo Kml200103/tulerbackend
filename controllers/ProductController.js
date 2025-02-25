@@ -288,9 +288,9 @@ const disableProduct=async(req,res)=>{
             return res.status(404).json({ message: "Product not found" });
         }
 
-        if (product.isDisabled) {
-            return res.status(400).json({ message: "product is already deleted" })
-        }
+        // if (product.isDisabled) {
+        //     return res.status(400).json({ message: "product is already deleted" })
+        // }
 
         product.isDisabled = status;
         product.deletedAt = new Date();
