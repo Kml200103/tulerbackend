@@ -316,7 +316,7 @@ const updateOrderStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body;
 
-       
+
 
         if (!orderId || !status) {
             return res.status(400).json({ status: false, message: "Order ID and status are required" });
@@ -452,7 +452,7 @@ const checkSession = async (sessionId) => {
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
 
-        const {payment_status,metadata}=session
+        const { payment_status, metadata } = session
         console.log('session', session.metadata)
         if (session.payment_status === "paid") {
             let payment_intent = session.payment_intent.toString();
@@ -462,14 +462,14 @@ const checkSession = async (sessionId) => {
             if (!order) {
                 return res.status(404).json({ status: false, message: "Order not found" });
             }
-    
+
             // Update the order status
-            const updateData = { paymentStatus:paymentStatus.PAID,paymentIntent:payment_intent, updatedAt: new Date() };
+            const updateData = { paymentStatus: paymentStatus.PAID, paymentIntent: payment_intent, updatedAt: new Date() };
             const updatedOrder = await Order.findByIdAndUpdate(metadata.orderId, updateData, { new: true });
-    
+
 
             // Update order status to "PAID" using updateOrderStatus function
-           
+
 
             return true
         } else {
@@ -489,12 +489,13 @@ const checkSessionId = async (req, res) => {
         }
 
         const response = await checkSession(sessionId)
-        console.log('response', response)
-        if(response){
-            return res.status(201).json({message:'Payment status updated',success:true});
-        }
-    } catch (error) {
 
+        if (response) {
+            return res.status(201).json({ message: 'Payment status updated', success: true });
+        }
+        return res.status(404).json({ message: 'error while updating payment status', success: false });
+    } catch (error) {
+        return res.status(400).json({ success: false, message: "Error while checking session ID" })
     }
 }
 

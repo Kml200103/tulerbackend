@@ -1,9 +1,76 @@
 import Product from "../modals/productModal.js";
 import { uploadToCloudinary } from "../services/upload/fileUpload.js";
 
+// const createOrUpdateProduct = async (req, res) => {
+//     try {
+//         const { productId, name, categoryId, description, variants ,benefits} = req.body;
+//         const files = req.files;
+
+//         if (!name || !categoryId || !description || !variants) {
+//             return res.status(400).json({ message: "All fields are mandatory" });
+//         }
+
+//         let imageUrl = "";
+//         let otherImageUrls = [];
+
+//         // Upload images in parallel using Promise.all
+//         const uploadPromises = [];
+
+     
+//         if (files?.coverImage) {
+//             uploadPromises.push(uploadToCloudinary(files.coverImage).then(urls => imageUrl = urls[0]));
+//         }
+
+//         if (files?.images) {
+//             uploadPromises.push(uploadToCloudinary(files?.images).then(urls => otherImageUrls = urls));
+//         }
+
+//         await Promise.all(uploadPromises);
+
+//         let product;
+//         if (productId) {
+//             // Fetch product only if it exists
+//             product = await Product.findById(productId);
+//             if (!product) {
+//                 return res.status(404).json({ message: "Product not found" });
+//             }
+
+//             // Update only the necessary fields
+//             product.name = name;
+//             product.categoryId = categoryId;
+//             product.description = description;
+//             product.variants = variants;
+//             product.benefits=benefits
+//             if (imageUrl) product.images = imageUrl;
+//             if (otherImageUrls.length) product.otherImages.push(...otherImageUrls);
+
+//             await product.save();
+//             return res.status(200).json({ message: "Product updated successfully", product });
+//         } 
+
+//         // Create a new product if productId is not provided
+//         product = new Product({
+//             name,
+//             categoryId,
+//             description,
+//             images: imageUrl,
+//             otherImages: otherImageUrls,
+//             variants,
+//             benefits
+//         });
+
+//         await product.save();
+//         return res.status(201).json({ message: "Product added successfully", product });
+
+//     } catch (error) {
+//         console.error("Error creating/updating product:", error);
+//         return res.status(500).json({ message: "Internal Server Error" });
+//     }
+// };
+
 const createOrUpdateProduct = async (req, res) => {
     try {
-        const { productId, name, categoryId, description, variants ,benefits} = req.body;
+        const { productId, name, categoryId, description, variants, benefits } = req.body;
         const files = req.files;
 
         if (!name || !categoryId || !description || !variants) {
@@ -16,20 +83,19 @@ const createOrUpdateProduct = async (req, res) => {
         // Upload images in parallel using Promise.all
         const uploadPromises = [];
 
-     
         if (files?.coverImage) {
             uploadPromises.push(uploadToCloudinary(files.coverImage).then(urls => imageUrl = urls[0]));
         }
 
         if (files?.images) {
-            uploadPromises.push(uploadToCloudinary(files?.images).then(urls => otherImageUrls = urls));
+            uploadPromises.push(uploadToCloudinary(files.images).then(urls => otherImageUrls = urls));
         }
 
         await Promise.all(uploadPromises);
 
         let product;
         if (productId) {
-            // Fetch product only if it exists
+            // Fetch existing product
             product = await Product.findById(productId);
             if (!product) {
                 return res.status(404).json({ message: "Product not found" });
@@ -40,15 +106,21 @@ const createOrUpdateProduct = async (req, res) => {
             product.categoryId = categoryId;
             product.description = description;
             product.variants = variants;
-            product.benefits=benefits
+            product.benefits = benefits;
+
+            // Ensure the cover image is updated
             if (imageUrl) product.images = imageUrl;
-            if (otherImageUrls.length) product.otherImages.push(...otherImageUrls);
+
+            // Update other images: Replace instead of appending
+            if (otherImageUrls.length) {
+                product.otherImages = otherImageUrls; // Replace instead of push
+            }
 
             await product.save();
             return res.status(200).json({ message: "Product updated successfully", product });
-        } 
+        }
 
-        // Create a new product if productId is not provided
+        // Create a new product if no productId is provided
         product = new Product({
             name,
             categoryId,

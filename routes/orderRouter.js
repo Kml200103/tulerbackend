@@ -3,7 +3,7 @@ import { checkSession, checkSessionId, getAllOrders, getOrderDetails, getOrders,
 import { authMiddleware } from "../middlewares/authMiddleware.js"
 
 
-const orderRouter =  express.Router()
+const orderRouter = express.Router()
 // orderRouter.use(authMiddleware)
 
 orderRouter.post('/order/create', placeOrder)
@@ -14,9 +14,9 @@ orderRouter.post('/order/status', updateOrderStatus)
 orderRouter.get('/order/:orderId', getOrderDetails)
 
 
-orderRouter.post('/order/makePayment/:orderId',makePayment)
+orderRouter.post('/order/makePayment/:orderId', makePayment)
 
-orderRouter.get('/order/checkSession/:sessionId',checkSessionId)
+orderRouter.get('/order/checkSession/:sessionId', checkSessionId)
 
-orderRouter.post("/webhook", express.raw({ type: 'application/json' }), handleStripeWebhook); 
+orderRouter.post("/webhook", express.raw({ type: 'application/json' }), handleStripeWebhook);
 export default orderRouter
