@@ -215,11 +215,12 @@ const deleteProduct = async (req, res) => {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        if (product.isDisabled) {
-            return res.status(400).json({ message: "product is already deleted" })
-        }
+        // if (product.isDisabled) {
+        //     return res.status(400).json({ message: "product is already deleted" })
+        // }
 
         product.isDisabled = true;
+        product.isPermanentDeleted=true;
         product.deletedAt = new Date();
         await product.save();
 
@@ -303,43 +304,28 @@ const disableProduct=async(req,res)=>{
     }
 }
 
-const disabledProducts=async(req,res)=>{
+const isDisabledProducts = async (req, res) => {
     try {
-        const {  page = 1, pageSize = 10 } = req.query;
+        let filter = {};
 
-        // Convert page and pageSize to numbers
-        const pageNumber = parseInt(page, 10);
-        const limit = parseInt(pageSize, 10);
-        const skip = (pageNumber - 1) * limit;
+        if (req.query.disabled === "true") {
+            filter = { isDisabled: true };
+        } else if (req.query.disabled === "false") {
+            filter = { isDisabled: false };
+        } else {
+            // If no valid "disabled" query parameter, handle accordingly
+            // For example, return all products or an error message
+            filter = {}; // Or filter = { isDisabled: false };
+        }
 
-        // Build the filter object
-       
+        const products = await Product.find(filter);
 
-        const products = await Product.find({isDisabled:true})
-            .skip(skip)
-            .limit(limit)
-            .sort({ totalSold: -1 }); // Sorting by totalSold in descending order
-
-        // Fetch top 3 products based on totalSold
- console.log('products', products)
-
-        // Get total product count for pagination
-        const totalProducts = await Product.countDocuments()
-
-        return res.status(200).json({
-            success: true,
-            products,
-         
-            page: pageNumber,
-            pageSize: limit,
-            totalPages: Math.ceil(totalProducts / limit),
-            totalProducts
-        });
+        res.status(200).json({ products });
     } catch (error) {
         console.error("Error fetching products:", error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
+        res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 // // Example: Fetching available products
 // const availableProducts = await Product.find({ isDisabled: false });
@@ -351,4 +337,4 @@ const disabledProducts=async(req,res)=>{
 // const deletedProducts = await Product.find({isDisabled:true});
 
 
-export { createOrUpdateProduct, getAllProducts, getProductById, deleteProduct, getProductByCategory ,disableProduct,disabledProducts};
+export { createOrUpdateProduct, getAllProducts, getProductById, deleteProduct, getProductByCategory ,disableProduct,isDisabledProducts};
