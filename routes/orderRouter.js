@@ -1,5 +1,5 @@
 import express from "express"
-import { getAllOrders, getOrderDetails, getOrders, makePayment, placeOrder, updateOrderStatus } from "../controllers/OrderController.js"
+import { checkSession, checkSessionId, getAllOrders, getOrderDetails, getOrders, handleStripeWebhook, makePayment, placeOrder, updateOrderStatus } from "../controllers/OrderController.js"
 import { authMiddleware } from "../middlewares/authMiddleware.js"
 
 
@@ -14,5 +14,9 @@ orderRouter.post('/order/status', updateOrderStatus)
 orderRouter.get('/order/:orderId', getOrderDetails)
 
 
-orderRouter.post('/order/retryPayment/:orderId',makePayment)
+orderRouter.post('/order/makePayment/:orderId',makePayment)
+
+orderRouter.get('/order/checkSession/:sessionId',checkSessionId)
+
+orderRouter.post("/webhook", express.raw({ type: 'application/json' }), handleStripeWebhook); 
 export default orderRouter

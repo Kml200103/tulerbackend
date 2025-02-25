@@ -17,6 +17,7 @@ const OrderSchema = new mongoose.Schema({
   totalPrice:Number,
   status: { type: String, enum: Object.values(statusTypes), default: statusTypes.PENDING },
   paymentStatus: { type: String, enum: Object.values(paymentStatus), default: paymentStatus.UNPAID },
+  paymentIntent: { type: String, default:null},
   createdAt: { type: Date, default: Date.now }
 });
 

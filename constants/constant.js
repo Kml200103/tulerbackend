@@ -18,6 +18,7 @@ export const ROLES = {
 
   export const paymentStatus={
     PAID:'PAID',
-    UNPAID:'UNPAID'
+    UNPAID:'UNPAID',
+    REFUNDED:'REFUNDED'
   }
  export const indianPincodeRegex = /^[1-9][0-9]{5}$/; // Matches valid 6-digit Indian pin codes

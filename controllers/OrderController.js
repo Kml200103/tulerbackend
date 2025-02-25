@@ -1,6 +1,6 @@
 
 
-import { paymentStatus } from "../constants/constant.js";
+import { paymentStatus, statusTypes } from "../constants/constant.js";
 import Cart from "../modals/cartModal.js";
 import Order from "../modals/orderModal.js";
 import Product from "../modals/productModal.js";
@@ -72,31 +72,33 @@ const placeOrder = async (req, res) => {
 
         await order.save();
 
-        // const session = await stripe.checkout.sessions.create({
-        //     payment_method_types: ['card'],
-        //     line_items: orderItems.map(item => ({
-        //         price_data: {
-        //             currency: 'usd', // Change to your currency
-        //             product_data: {
-        //                 name: item.name,
-        //             },
-        //             unit_amount: item.price * 100, // Stripe uses cents
-        //         },
-        //         quantity: item.quantity,
-        //     })),
-        //     mode: 'payment',
-        //     success_url: `${config.frontendUrl}/order/success?orderId=${order._id}`, // Redirect to success page
-        //     cancel_url: `${config.frontendUrl}/order/cancel?orderId=${order._id}`, // Redirect to cancel page
-        //     metadata: {
-        //         orderId: order._id.toString(),
-        //     },
-        // });
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: orderItems.map(item => ({
+                price_data: {
+                    currency: 'usd', // Change to your currency
+                    product_data: {
+                        name: item.name,
+                    },
+                    unit_amount: item.price * 100, // Stripe uses cents
+                },
+                quantity: item.quantity,
+            })),
+            mode: 'payment',
+            success_url: `${config.frontendUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
+            cancel_url: `${config.frontendUrl}/cancel`,
+            metadata: {
+                orderId: order._id.toString(),
+            },
+        });
+
+        console.log('session.url', session.url)
 
         await Cart.findOneAndDelete({ userId });
         // Send email notification
         await emailService.sendOrderConfirmationEmail(user.email, order._id, orderItems, totalPrice);
 
-        res.status(201).json({ status: true, orderId: order._id });
+        res.status(201).json({ status: true, orderId: order._id, session: session.url });
 
     } catch (error) {
         console.error(error);
@@ -314,6 +316,8 @@ const updateOrderStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body;
 
+       
+
         if (!orderId || !status) {
             return res.status(400).json({ status: false, message: "Order ID and status are required" });
         }
@@ -325,8 +329,24 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({ status: false, message: "Order not found" });
         }
 
+        let updateData = { status, updatedAt: new Date() };
+
+        // If the order is canceled and was paid, initiate a refund
+        if (status === 'CANCEL' && order.paymentStatus === 'PAID' && order.paymentIntent) {
+            try {
+                const refund = await stripe.refunds.create({
+                    payment_intent: order.paymentIntent,
+                });
+
+                console.log("Refund Successful:", refund);
+                updateData.paymentStatus = paymentStatus.REFUNDED; // Update payment status
+            } catch (refundError) {
+                console.error("Refund Failed:", refundError);
+                return res.status(500).json({ status: false, message: "Refund process failed" });
+            }
+        }
+
         // Update the order status
-        const updateData = { status, updatedAt: new Date() };
         const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, { new: true });
 
         // If the order is canceled, restore inventory
@@ -341,7 +361,6 @@ const updateOrderStatus = async (req, res) => {
                 );
             }
 
-            // console.log('order.items', order.items)
             // Send cancellation email if user email exists
             if (order.userId.email) {
                 await emailService.sendOrderCancellationEmail(order.userId.email, orderId, order.items, order.totalPrice || 0);
@@ -353,17 +372,17 @@ const updateOrderStatus = async (req, res) => {
         return res.status(200).json({
             status: true,
             message: "Order status updated successfully",
-            // updatedOrder,
+            updatedOrder,
         });
 
     } catch (error) {
         console.error("Error updating order status:", error);
         return res.status(500).json({ status: false, message: "Internal Server Error" });
     }
-}
+};
 
 
-const makePayment=async(req,res)=>{
+const makePayment = async (req, res) => {
     try {
         const { orderId } = req.params;
         const order = await Order.findById(orderId);
@@ -389,20 +408,97 @@ const makePayment=async(req,res)=>{
                 quantity: item.quantity,
             })),
             mode: 'payment',
-            success_url: `${config?.frontendUrl}/order/success?orderId=${order._id}`,
-            cancel_url: `${config?.frontendUrl}/order/cancel?orderId=${order._id}`,
+            success_url: `${config.frontendUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
+            cancel_url: `${config.frontendUrl}/cancel`,
+            // success_url: `${config?.frontendUrl}/order/success?orderId=${order._id}`,
+            // cancel_url: `${config?.frontendUrl}/order/cancel?orderId=${order._id}`,
             metadata: {
                 orderId: order._id.toString(),
             },
         });
 
-        res.status(200).json({ status: true, sessionId: session.id });
+        res.status(200).json({ status: true, sessionId: session.url });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: 'Internal Server Error' });
     }
 }
 
+const handleStripeWebhook = async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+
+    let event;
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        return res.status(400).json({ status: false, message: `Webhook Error: ${err.message}` });
+    }
+
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const orderId = session.metadata.orderId;
+
+        await Order.findByIdAndUpdate(orderId, { paymentStatus: "PAID" });
+
+        console.log(`Payment successful for order ${orderId}`);
+    }
+
+    res.status(200).json({ status: true, received: true });
+};
 
 
-export { getOrders, getOrderDetails, placeOrder, updateOrderStatus, getAllOrders ,makePayment};
+const checkSession = async (sessionId) => {
+    try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+
+        const {payment_status,metadata}=session
+        console.log('session', session.metadata)
+        if (session.payment_status === "paid") {
+            let payment_intent = session.payment_intent.toString();
+
+            const order = await Order.findById(metadata.orderId).populate('userId', 'email');
+
+            if (!order) {
+                return res.status(404).json({ status: false, message: "Order not found" });
+            }
+    
+            // Update the order status
+            const updateData = { paymentStatus:paymentStatus.PAID,paymentIntent:payment_intent, updatedAt: new Date() };
+            const updatedOrder = await Order.findByIdAndUpdate(metadata.orderId, updateData, { new: true });
+    
+
+            // Update order status to "PAID" using updateOrderStatus function
+           
+
+            return true
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error("Error checking session:", error);
+        return false;
+    }
+};
+
+const checkSessionId = async (req, res) => {
+    try {
+        const { sessionId } = req.params
+        if (!sessionId) {
+            return res.status(404).json({ success: false, message: "Session ID not defined" })
+        }
+
+        const response = await checkSession(sessionId)
+        console.log('response', response)
+        if(response){
+            return res.status(201).json({message:'Payment status updated',success:true});
+        }
+    } catch (error) {
+
+    }
+}
+
+
+
+
+export { getOrders, getOrderDetails, placeOrder, updateOrderStatus, getAllOrders, makePayment, checkSession, handleStripeWebhook, checkSessionId };
