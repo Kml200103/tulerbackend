@@ -13,9 +13,7 @@ app.set(port)
 
 const server=http.createServer(app)
 
-app.get('/',(req,res)=>{
-   return res.status(200).json("HEllo from server")
-})
+
 
 server.listen(port,()=>{
     console.log(`Server Started at ${port}`)

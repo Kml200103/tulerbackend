@@ -7,6 +7,11 @@ import routeConfig from "./setup/routeConfig.js"
 
 const app = express()
 
+
+app.get('/', (req, res) => {
+    return res.status(200).json("HEllo from server")
+})
+
 expressFunc(app)
 routeConfig(app)
 
