@@ -1,7 +1,8 @@
 import http from "http"
 import app from "./main.js"
-import dbConnection from "./database/dbconnection.js"
+
 import config from "./config/index.js";
+import dbConnection from "./database/dbConnection.js";
 
 dbConnection();
 
