@@ -12,18 +12,18 @@ const cartRouter = new express.Router();
 
 // cartRouter.use(authMiddleware)
 // Add product to cart
-cartRouter.post("/cart/add", addToCart);
+cartRouter.post("/cart/add", authMiddleware, addToCart);
 
 // Get user's cart
-cartRouter.get("/cart/:userId", getCart);
+cartRouter.get("/cart/:userId", authMiddleware, getCart);
 
 // Update cart item quantity
-cartRouter.put("/cart/update", updateCartItem);
+cartRouter.put("/cart/update", authMiddleware, updateCartItem);
 
 // Remove item from cart
-cartRouter.delete("/cart/remove", removeCartItem);
+cartRouter.delete("/cart/remove", authMiddleware, removeCartItem);
 
 // Clear cart
-cartRouter.delete("/cart/clear/:userId", clearCart);
+cartRouter.delete("/cart/clear/:userId", authMiddleware, clearCart);
 
 export default cartRouter;
