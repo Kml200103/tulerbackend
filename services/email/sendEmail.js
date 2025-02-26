@@ -20,8 +20,8 @@ class EmailService {
       port: 587,
 	  secure:false,
       auth: {
-        user: 'Tuler',
-        pass: 'demp fial xqce eggg',
+        user: config.smtpUser,
+        pass: config.smtpPass,
       },
     });
   }
