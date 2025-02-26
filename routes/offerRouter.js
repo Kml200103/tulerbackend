@@ -1,9 +1,10 @@
 import express from "express"
 import { addOffer, addOffers, applyDiscount, deleteOffer, getOffers, updateOffer } from "../controllers/OfferController.js"
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const offerRouter = express.Router()
 
-offerRouter.post('/offer/add', addOffer)
+offerRouter.post('/offer/add',authMiddleware, addOffer)
 
 offerRouter.post("/offer/bulk-add", addOffers);
 

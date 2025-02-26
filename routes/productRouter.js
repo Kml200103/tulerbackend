@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { createOrUpdateProduct, deleteProduct, disableProduct, getAllProducts, getProductByCategory, getProductById, isDisabledProducts } from "../controllers/ProductController.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -15,7 +16,7 @@ const upload = multer({
 const productRouter =new express.Router();
 
 // Unified route for creating/updating products
-productRouter.post('/product', upload, createOrUpdateProduct);
+productRouter.post('/product',authMiddleware, upload, createOrUpdateProduct);
 
 
 
@@ -25,14 +26,14 @@ productRouter.get('/products', getAllProducts);
 productRouter.get('/product/:productId', getProductById);
 
 // Delete a product
-productRouter.delete('/product/:productId', deleteProduct);
+productRouter.delete('/product/:productId',authMiddleware, deleteProduct);
 
 
-productRouter.post('/product/disable/:productId',disableProduct)
+productRouter.post('/product/disable/:productId',authMiddleware,disableProduct)
 
 productRouter.get('/product', getProductByCategory);
 
-productRouter.get('/products/disabled',isDisabledProducts)
+productRouter.get('/products/disabled',authMiddleware,isDisabledProducts)
 
 
 export default productRouter;
