@@ -20,12 +20,12 @@ class EmailService {
       port: 587,
 	  secure:false,
       auth: {
-        user: 'testappvt@gmail.com',
-        pass: 'Ta0909@0909',
+        user: 'Tuler',
+        pass: 'demp fial xqce eggg',
       },
     });
   }
-  
+
   async sendResetPasswordEmail(email, token) {
     const resetPasswordUrl = `${config.frontendUrl}/reset-password/?email=${encodeURIComponent(email)}&token=${token}`;
     const mailOptions = {
