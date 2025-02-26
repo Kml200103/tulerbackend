@@ -15,7 +15,7 @@ const expressFunc = (app) => {
           credentials: true,
         })
       );
-      
+    app.options("*", cors())
     app.use(cookieParser())
     app.use(compression())
     app.use(helmet())
