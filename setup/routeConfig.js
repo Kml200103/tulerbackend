@@ -10,9 +10,9 @@ import userRouter from "../routes/userRoutes.js"
 
 
 
-const apiPath='/api'
+// const apiPath='/api'
 const routeConfig=(app)=>{
-    app.use(apiPath,userRouter,authRouter,productRouter,addressRouter,categoryRouter,cartRouter,orderRouter,feedBackRouter,offerRouter)
+    app.use(userRouter,authRouter,productRouter,addressRouter,categoryRouter,cartRouter,orderRouter,feedBackRouter,offerRouter)
 
 }
 
