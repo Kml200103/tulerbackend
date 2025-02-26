@@ -1,18 +1,31 @@
 import nodemailer from "nodemailer"
 import config from "../../config/index.js";
 
+// class EmailService {
+//   constructor() {
+//     this.transporter = nodemailer.createTransport({
+//       host: 'sandbox.smtp.mailtrap.io',
+//       port: 2525,
+//       auth: {
+//         user: config.smtpUser,
+//         pass: config.smtpPass,
+//       },
+//     });
+//   }
+
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: 'sandbox.smtp.mailtrap.io',
-      port: 2525,
+      host: 'smtp.gmail.com',
+      port: 587,
+	  secure:false,
       auth: {
-        user: config.smtpUser,
-        pass: config.smtpPass,
+        user: 'testappvt@gmail.com',
+        pass: 'Ta0909@0909',
       },
     });
   }
-
+  
   async sendResetPasswordEmail(email, token) {
     const resetPasswordUrl = `${config.frontendUrl}/reset-password/?email=${encodeURIComponent(email)}&token=${token}`;
     const mailOptions = {
