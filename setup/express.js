@@ -11,7 +11,7 @@ const expressFunc = (app) => {
     app.use(bodyParser.json({ limit: '2048mb' }))
     app.use(
         cors({
-          origin: ["http://localhost:5173", "http://localhost:5174","https://tuler-frontend.vercel.app","https://tuler-frontend-u8bo.vercel.app/"], 
+          origin: ["http://localhost:5173", "http://localhost:5174","https://tuler-frontend.vercel.app","https://tuler-frontend-u8bo.vercel.app"], 
           credentials: true,
         })
       );
