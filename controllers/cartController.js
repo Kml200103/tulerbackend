@@ -7,6 +7,7 @@ const addToCart = async (req, res) => {
     try {
         const { productId, variantId, quantity, userId } = req.body;
 
+
         // console.log('req.body', req.body)
         // Fetch product and specific variant
         const product = await Product.findById(productId);
@@ -14,7 +15,7 @@ const addToCart = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        const variant = product.variants.find(v => v?._id.toString() === variantId); 
+        const variant = product.variants.find(v => v?._id.toString() === variantId);
         if (!variant) {
             return res.status(404).json({ success: false, message: "Variant not found" });
         }
@@ -26,22 +27,19 @@ const addToCart = async (req, res) => {
             cart = new Cart({ userId, items: [] });
         }
 
-        // console.log('cart', cart)
-        // Check if the item (same product + variant) is already in the cart
-        // Check if the item (same product + variant) is already in the cart
-        const existingItem = cart.items.find(item => 
-            item?.productId?.toString() === productId && 
+
+        const existingItem = cart.items.find(item =>
+            item?.productId?.toString() === productId &&
             item?.variantId?.toString() === variantId
         );
-        // console.log('existing', existingItem)
-        // console.log("Variant ID before adding to cart:", variant?._id);
+
 
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {
             cart.items.push({
                 productId,
-                variantId: variant._id, 
+                variantId: variant._id,
                 weight: variant.weight,
                 quantity,
                 price: variant.price
@@ -75,7 +73,7 @@ const getCart = async (req, res) => {
             if (!product) return item; // If product is missing, return item as is
 
             const variant = product.variants.find(v => v?._id?.toString() === item?.variantId.toString());
-// console.log('variant', variant)
+            // console.log('variant', variant)
             return {
                 _id: item._id,
                 productId: product._id,
@@ -108,13 +106,13 @@ const updateCartItem = async (req, res) => {
         const { userId, productId, weight, quantity } = req.body;
 
         // console.log('req.body:', req.body);
-        
+
         const cart = await Cart.findOne({ userId });
         if (!cart) {
             return res.status(404).json({ message: "Cart not found" });
         }
 
-        const item = cart.items.find(item => 
+        const item = cart.items.find(item =>
             item.productId.toString() === productId && item.weight === weight
         );
 
@@ -169,4 +167,58 @@ const clearCart = async (req, res) => {
     }
 };
 
-export { addToCart, getCart, updateCartItem, removeCartItem, clearCart };
+
+const addToCartMultiple = async (req, res) => {
+    try {
+        const { items, userId } = req.body; // Expect an array of items
+
+        console.log('items', items)
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ success: false, message: "Invalid items data" });
+        }
+
+        let cart = await Cart.findOne({ userId });
+
+        if (!cart) {
+            cart = new Cart({ userId, items: [] });
+        }
+
+        for (const itemData of items) {
+            const { productId, variantId, quantity } = itemData;
+
+            const product = await Product.findById(productId);
+            if (!product) {
+                return res.status(404).json({ success: false, message: `Product with ID ${productId} not found` });
+            }
+
+            const variant = product.variants.find(v => v?._id.toString() === variantId);
+            if (!variant) {
+                return res.status(404).json({ success: false, message: `Variant with ID ${variantId} not found for product ${productId}` });
+            }
+
+            const existingItem = cart.items.find(cartItem =>
+                cartItem?.productId?.toString() === productId &&
+                cartItem?.variantId?.toString() === variantId
+            );
+
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.items.push({
+                    productId,
+                    variantId: variant._id,
+                    weight: variant.weight,
+                    quantity,
+                    price: variant.price,
+                });
+            }
+        }
+
+        await cart.save();
+        return res.status(200).json({ success: true, message: "Items added to cart", cart });
+    } catch (error) {
+        console.error("Error adding multiple items to cart:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
+    export { addToCart, getCart, updateCartItem, removeCartItem, clearCart,addToCartMultiple };

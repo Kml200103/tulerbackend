@@ -4,7 +4,8 @@ import {
     getCart,
     updateCartItem,
     removeCartItem,
-    clearCart
+    clearCart,
+    addToCartMultiple
 } from "../controllers/cartController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -26,4 +27,5 @@ cartRouter.delete("/cart/remove", authMiddleware, removeCartItem);
 // Clear cart
 cartRouter.delete("/cart/clear/:userId", authMiddleware, clearCart);
 
+cartRouter.post("/cart/multiple",authMiddleware,addToCartMultiple)
 export default cartRouter;
